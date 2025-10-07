@@ -23,7 +23,8 @@ executable excalibur
                        Types.Base,
                        Types.Check,
                        Types.CheckResult,
-                       Util
+                       Util,
+                       Util.TempCopy
                         
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
