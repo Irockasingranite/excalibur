@@ -1,6 +1,7 @@
 module Util (
     checkoutCommit,
     formatCheckResult,
+    formatReport,
     inTempCopy,
     resolveCommitRange,
 ) where
@@ -9,6 +10,7 @@ import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
+import qualified Data.DList as DL
 import qualified Data.Text as T
 import Lens.Micro.Platform
 import System.Directory
@@ -80,3 +82,31 @@ formatCheckResult c = case c ^. resultType of
     status = show (c ^. resultType)
     statusline = name ++ ": " ++ status
     outputline = "Output:\n" ++ T.unpack (c ^. resultOutput)
+
+formatReport :: Report -> String
+formatReport r = unlines [globalSummary, perCommitSummary]
+  where
+    nGlobalChecks = length . DL.toList $ r ^. globalCheckResults
+    globalFailures = r ^. globalCheckResults & DL.toList & filter (\e -> (e ^. resultType) == CheckResultFailed)
+    nGlobalFailures = length globalFailures
+    nGlobalPassed = nGlobalChecks - nGlobalFailures
+    globalSummary = "Global checks: " ++ show nGlobalPassed ++ "/" ++ show nGlobalChecks ++ " passed"
+    allPerCommitChecks = r ^. perCommitCheckResults ^.. traverse . commitResults . traverse
+    nPerCommitChecks = length allPerCommitChecks
+    failedPerCommitChecks = reportOnlyFailures r ^. perCommitCheckResults
+    nPerCommitFailures = failedPerCommitChecks ^.. traverse . commitResults . traverse & length
+    nPerCommitPassed = nPerCommitChecks - nPerCommitFailures
+    perCommitSummary = "Per-commit checks: " ++ show nPerCommitPassed ++ "/" ++ show nPerCommitChecks ++ " passed"
+
+reportOnlyFailures :: Report -> Report
+reportOnlyFailures r =
+    Report globalFiltered perCommitFiltered
+  where
+    isFailure x = (x ^. resultType) == CheckResultFailed
+    hasResults x = not $ null (x ^. commitResults)
+    globalFiltered = r ^. globalCheckResults ^.. traverse . filtered isFailure & DL.fromList
+    perCommitFailures p =
+        CommitReport
+            (p ^. commitId)
+            (p ^. commitResults ^.. traverse . filtered isFailure & DL.fromList)
+    perCommitFiltered = r ^. perCommitCheckResults & DL.toList & map perCommitFailures & filter hasResults & DL.fromList

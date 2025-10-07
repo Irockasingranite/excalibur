@@ -8,7 +8,7 @@ import Control.Monad.Trans.State
 import qualified Data.Aeson.Encode.Pretty as Json
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.DList as DL
+import qualified Data.DList as DL
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
@@ -33,7 +33,7 @@ performGlobalChecks wd checks = do
         liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
         result <- liftIO $ performCheck wd c
         liftIO $ putStrLn (formatCheckResult result)
-        globalCheckResults %= flip snoc result
+        globalCheckResults %= flip DL.snoc result
 
 performPerCommitChecks :: Commit -> FilePath -> [Check] -> StateT Report IO ()
 performPerCommitChecks hash wd checks = do
@@ -45,7 +45,7 @@ performPerCommitChecks hash wd checks = do
         return result
 
     let commitResult = CommitReport hash (DL.fromList results)
-    perCommitCheckResults %= flip snoc commitResult
+    perCommitCheckResults %= flip DL.snoc commitResult
 
 performCheckOnCommit :: Commit -> FilePath -> Check -> IO CheckResult
 performCheckOnCommit hash wd check = do
@@ -88,5 +88,7 @@ main = do
         Left e -> print e
         Right config -> do
             ((), results) <- runStateT (performChecks config repoDir commits) mempty
+            putStrLn $ replicate 40 '-'
+            putStrLn $ formatReport results
             let encoded = Json.encodePretty' checkResultPrettyConfig results & LBS.unpack
             writeFile "results.json" encoded
