@@ -19,21 +19,21 @@ import Util
 import Util.RunCommand
 
 -- Runs all checks given in a check configuration.
-runChecks :: CheckConfiguration -> FilePath -> [Commit] -> IO Report
-runChecks config repo commits = do
+runChecks :: CheckConfiguration -> CheckVariables -> FilePath -> [Commit] -> IO Report
+runChecks config vars repo commits = do
     inTempCopy repo "excalibur" $ \tmpDir -> do
         liftIO $ putStrLn $ "Running checks in " ++ tmpDir
 
         -- Global checks run only on final repository state
         let finalCommit = getFinal commits
-            repoContext = CheckContext tmpDir finalCommit commits
+            repoContext = CheckContext tmpDir finalCommit commits vars
             repoChecks = config.repoChecks
         liftIO $ checkoutCommit repo finalCommit
         globalReports <- runReaderT (runChecksInContext repoChecks) repoContext
 
         -- Per-Commit checks run on each commit in the range
         commitReports <- forMDList commits $ \c -> do
-            let context = CheckContext tmpDir c [c]
+            let context = CheckContext tmpDir c [c] vars
             let checks = config.commitChecks
             liftIO $ checkoutCommit tmpDir c
             liftIO $ putStrLn $ "Checking commit " ++ T.unpack c

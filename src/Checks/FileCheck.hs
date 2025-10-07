@@ -17,6 +17,7 @@ import System.FilePath
 import qualified Data.ByteString.Lazy.Char8 as BS
 import System.Process.Typed
 import Types
+import Util.ExpandVariables
 import Util.ResolvePaths
 import Util.RunCommand
 
@@ -24,15 +25,14 @@ import Util.RunCommand
 
 runFileCheck :: FileCheck -> ReaderT CheckContext IO CheckReport
 runFileCheck check = do
-    wd <- asks (view #directory)
-    commit <- asks (view #commit)
-    commitRange <- asks (view #commitRange)
+    -- Grab context
+    ctx <- ask
 
     -- Find files
-    files <- liftIO $ resolvePaths check.filePatterns wd
+    files <- liftIO $ resolvePaths check.filePatterns ctx.directory
 
     -- Optionally filter for changed files
-    mAllChanged <- liftIO $ getChangedFiles wd commitRange
+    mAllChanged <- liftIO $ getChangedFiles ctx.directory ctx.commitRange
     let changedFiles = case mAllChanged of
             Nothing -> []
             Just allChanged -> filter (`elem` allChanged) files
@@ -44,7 +44,10 @@ runFileCheck check = do
 
     -- Run command on each file and collect output
     results <- forM filesToCheck $ \file -> do
-        runCommandWithStderrIn wd (T.unpack check.command ++ " " ++ file)
+        let cmdRaw = check.command
+            vars' = withFilename file ctx.variables
+            cmd = T.unpack . expandVariables vars' $ cmdRaw
+        runCommandWithStderrIn ctx.directory cmd
 
     -- Aggregate results:
     -- For Exit codes a single failure fails the whole check
@@ -75,7 +78,7 @@ runFileCheck check = do
     return $
         CheckReport
             { check = CheckFileCheck check
-            , commit = commit
+            , commit = ctx.commit
             , result = result
             }
 

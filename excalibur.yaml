@@ -10,7 +10,7 @@ on-repository:
 
 on-commit:
   - name: Check formatting
-    command: clang-format --dry-run -Werror
+    command: clang-format --dry-run -Werror ${filename}
     expected-exit: 0
     files:
       - "**/**.c"

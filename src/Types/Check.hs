@@ -15,6 +15,7 @@ module Types.Check where
 
 import Control.Applicative
 import Data.Aeson
+import Data.Text (Text)
 import Data.Yaml as Yaml
 import Optics.TH
 
@@ -61,12 +62,22 @@ instance FromJSON CheckConfiguration where
         onCommit <- o .: "on-commit"
         return $ CheckConfiguration onRepo onCommit
 
+-- Variables to be expanded in commands
+data CheckVariables
+    = CheckVariables
+    { filename :: FilePath
+    , commitRange :: Text
+    }
+
+makeFieldLabelsNoPrefix ''CheckVariables
+
 -- Context a check runs in
 data CheckContext
     = CheckContext
     { directory :: FilePath
     , commit :: Commit
     , commitRange :: [Commit]
+    , variables :: CheckVariables
     }
 
 makeFieldLabelsNoPrefix ''CheckContext

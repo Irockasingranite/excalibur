@@ -19,19 +19,20 @@ executable excalibur
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Checks,
-                       Checks.GlobalCheck,
                        Checks.FileCheck,
+                       Checks.GlobalCheck,
                        Types,
                        Types.Base,
                        Types.Check,
-                       Types.Check.GlobalCheck,
                        Types.Check.FileCheck,
+                       Types.Check.GlobalCheck,
                        Types.CheckReport,
                        Util,
                        Util.ResolveCommitRange,
                        Util.ResolvePaths,
                        Util.RunCommand,
-                       Util.TempCopy
+                       Util.TempCopy,
+                       Util.ExpandVariables
                         
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,

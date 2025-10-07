@@ -103,12 +103,14 @@ main = do
     configContents <- readFile configPath
     let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
 
+    let vars = CheckVariables "." commitRange
+
     case eConfig of
         Left e -> do
             hPutStrLn stderr $ "Invalid configuration file: " ++ show e
         Right config -> do
             -- Run checks to generate report
-            report <- runChecks config repoDir commits
+            report <- runChecks config vars repoDir commits
             let summary = mkReportSummary report
             putStrLn $ replicate 40 '-'
             print summary
