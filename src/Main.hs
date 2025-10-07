@@ -15,6 +15,7 @@ import qualified Data.Yaml as Yaml
 import Optics
 import Options.Applicative as O
 import System.Exit
+import System.FilePath
 import System.IO
 
 import Checks
@@ -98,7 +99,8 @@ main = do
 
     let commits = fromMaybe [] mCommits
 
-    configContents <- readFile configFile
+    let configPath = repoDir </> configFile
+    configContents <- readFile configPath
     let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
 
     case eConfig of
