@@ -6,7 +6,7 @@ module Types where
 import Data.Scientific
 import Data.Text (Text)
 import Data.Yaml
-import Lens.Micro.Platform
+import Lens.Micro.Platform (makeLenses, (^.))
 import System.Exit
 
 type Command = Text

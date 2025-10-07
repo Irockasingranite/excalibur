@@ -23,6 +23,7 @@ executable excalibur
                         
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
+                       aeson,
                        bytestring,
                        directory,
                        exceptions,
@@ -31,6 +32,7 @@ executable excalibur
                        scientific,
                        temporary,
                        text,
+                       typed-process,
                        yaml
   ghc-options:         -Wall
                        -Wcompat
