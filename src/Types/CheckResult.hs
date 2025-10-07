@@ -20,18 +20,18 @@ import Optics (makeFieldLabelsNoPrefix, makePrisms)
 
 import Types.Base
 import Types.Check
-import Types.Check.CommandCheck
+import Types.Check.GlobalCheck
 
 data CheckFailure
-    = CheckFailureCommandCheck CommandCheckFailure
+    = CheckFailureGlobalCheck GlobalCheckFailure
 
 instance Show CheckFailure where
     show f = case f of
-        CheckFailureCommandCheck ff -> show ff
+        CheckFailureGlobalCheck ff -> show ff
 
 instance ToJSON CheckFailure where
     toJSON f = case f of
-        CheckFailureCommandCheck cf -> toJSON cf
+        CheckFailureGlobalCheck cf -> toJSON cf
 
 data CheckResult
     = Success
@@ -90,8 +90,8 @@ instance ToJSON CheckReport where
 
 data Report
     = Report
-    { globalReports :: DList CheckReport
-    , perCommitReports :: DList CheckReport
+    { repoReports :: DList CheckReport
+    , commitReports :: DList CheckReport
     }
 
 makeFieldLabelsNoPrefix ''Report
@@ -107,8 +107,8 @@ instance Monoid Report where
 instance ToJSON Report where
     toJSON r =
         object
-            [ "global" .= r.globalReports
-            , "per_commit" .= r.perCommitReports
+            [ "on-repository" .= r.repoReports
+            , "on-commit" .= r.commitReports
             ]
 
 -- @relation(SPEC-7, scope=range_end)

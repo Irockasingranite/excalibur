@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Checks (
-    performChecks,
+    runChecks,
 ) where
 
 import Control.Monad.IO.Class
@@ -11,37 +11,37 @@ import Data.DList (DList)
 import qualified Data.DList as DL
 import qualified Data.Text as T
 
-import Checks.CommandCheck
+import Checks.GlobalCheck
 import Types
 import Util
 
 -- Runs all checks given in a check configuration.
-performChecks :: CheckConfiguration -> FilePath -> [Commit] -> IO Report
-performChecks config repo commits = do
-    inTempCopy repo "excalibur" $ \dir -> do
-        liftIO $ putStrLn $ "Running checks in " ++ dir
+runChecks :: CheckConfiguration -> FilePath -> [Commit] -> IO Report
+runChecks config repo commits = do
+    inTempCopy repo "excalibur" $ \tmpDir -> do
+        liftIO $ putStrLn $ "Running checks in " ++ tmpDir
 
         -- Global checks run only on final repository state
         let finalCommit = getFinal commits
-            globalContext = CheckContext repo finalCommit
-            globalChecks = config.globalChecks
+            repoContext = CheckContext tmpDir finalCommit
+            repoChecks = config.repoChecks
         liftIO $ checkoutCommit repo finalCommit
-        globalReports <- runReaderT (performChecksInContext globalChecks) globalContext
+        globalReports <- runReaderT (runChecksInContext repoChecks) repoContext
 
         -- Per-Commit checks run on each commit in the range
-        perCommitReports <- forMDList commits $ \c -> do
-            let context = CheckContext repo c
-            let checks = config.perCommitChecks
-            liftIO $ checkoutCommit repo c
+        commitReports <- forMDList commits $ \c -> do
+            let context = CheckContext tmpDir c
+            let checks = config.commitChecks
+            liftIO $ checkoutCommit tmpDir c
             liftIO $ putStrLn $ "Checking commit " ++ T.unpack c
-            runReaderT (performChecksInContext checks) context
+            runReaderT (runChecksInContext checks) context
 
         -- Flatten nested DLists of reports into a single DList
-        let allPerCommitReports = (DL.concat . DL.toList) perCommitReports
+        let allCommitReports = (DL.concat . DL.toList) commitReports
         return $
             Report
-                { globalReports = globalReports
-                , perCommitReports = allPerCommitReports
+                { repoReports = globalReports
+                , commitReports = allCommitReports
                 }
   where
     getFinal [] = "HEAD" -- Use HEAD if no range is given
@@ -49,15 +49,15 @@ performChecks config repo commits = do
     getFinal (_ : cs) = getFinal cs -- Recurse range to last one
 
 -- Run a list of checks in a context. Assumes the right commit has been checked out.
-performChecksInContext :: [Check] -> ReaderT CheckContext IO (DList CheckReport)
-performChecksInContext checks = do
+runChecksInContext :: [Check] -> ReaderT CheckContext IO (DList CheckReport)
+runChecksInContext checks = do
     forMDList checks $ \c -> do
-        res <- performCheck c
+        res <- runCheck c
         liftIO $ print res
         return res
 
 -- Runs a single check in a context. Can read the context to fill out report details as needed.
-performCheck :: Check -> ReaderT CheckContext IO CheckReport
-performCheck check = do
+runCheck :: Check -> ReaderT CheckContext IO CheckReport
+runCheck check = do
     case check of
-        CheckCommandCheck c -> performCommandCheck c
+        CheckGlobalCheck c -> runGlobalCheck c

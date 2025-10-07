@@ -101,7 +101,7 @@ main = do
     case eConfig of
         Left e -> print e
         Right config -> do
-            report <- performChecks config repoDir commits
+            report <- runChecks config repoDir commits
             putStrLn $ replicate 40 '-'
 
             putStrLn $ summarizeReport report

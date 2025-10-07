@@ -18,40 +18,39 @@ import Data.Yaml as Yaml
 import Optics.TH
 
 import Types.Base
-import Types.Check.CommandCheck
+import Types.Check.GlobalCheck
+
+-- Implements SPEC-1 @relation(SPEC-1, scope=file)
 
 -- A check to be performed.
 data Check
-    = CheckCommandCheck CommandCheck
+    = CheckGlobalCheck GlobalCheck
 
 instance Show Check where
     show check = case check of
-        CheckCommandCheck c -> show c.name
+        CheckGlobalCheck c -> show c.name
 
 -- Parse into a specific check variant. Currently trivial.
 instance FromJSON Check where
-    parseJSON v = CheckCommandCheck <$> (parseJSON v :: Parser CommandCheck)
+    parseJSON v = CheckGlobalCheck <$> (parseJSON v :: Parser GlobalCheck)
 
 instance ToJSON Check where
     toJSON c = case c of
-        CheckCommandCheck cc -> toJSON cc
+        CheckGlobalCheck cc -> toJSON cc
 
--- Implements SPEC-1 @relation(SPEC-1, scope=range_start)
 -- A complete check configuration.
 data CheckConfiguration
     = CheckConfiguration
-    { globalChecks :: [Check]
-    , perCommitChecks :: [Check]
+    { repoChecks :: [Check]
+    , commitChecks :: [Check]
     }
     deriving (Show)
 
 instance FromJSON CheckConfiguration where
     parseJSON = withObject "CheckConfiguration" $ \o -> do
-        global <- o .: "global"
-        perCommit <- o .: "per_commit"
-        return $ CheckConfiguration global perCommit
-
--- @relation(SPEC-1, scope=range_end)
+        onRepo <- o .: "on-repository"
+        onCommit <- o .: "on-commit"
+        return $ CheckConfiguration onRepo onCommit
 
 -- Context a check runs in
 data CheckContext

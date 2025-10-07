@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 
-module Checks.CommandCheck (
-    performCommandCheck,
+module Checks.GlobalCheck (
+    runGlobalCheck,
 ) where
 
 import Control.Monad.Trans.Reader
@@ -14,8 +14,10 @@ import System.Process.Typed
 
 import Types
 
-performCommandCheck :: CommandCheck -> ReaderT CheckContext IO CheckReport
-performCommandCheck check = do
+-- Implements SPEC-1 @relation(SPEC-1, scope=file)
+
+runGlobalCheck :: GlobalCheck -> ReaderT CheckContext IO CheckReport
+runGlobalCheck check = do
     wd <- asks (view #directory)
     commit <- asks (view #commit)
     let cmd = check.command & T.unpack
@@ -26,15 +28,15 @@ performCommandCheck check = do
                 then Success
                 else
                     Failure $
-                        CheckFailureCommandCheck $
-                            CommandCheckFailure
+                        CheckFailureGlobalCheck $
+                            GlobalCheckFailure
                                 { expectedExit = expected
                                 , actualExit = exit
                                 , logs = (T.pack . LBS.unpack) out
                                 }
     return $
         CheckReport
-            { check = CheckCommandCheck check
+            { check = CheckGlobalCheck check
             , commit = commit
             , result = result
             }

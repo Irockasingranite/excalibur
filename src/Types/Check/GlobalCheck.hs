@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
-module Types.Check.CommandCheck where
+module Types.Check.GlobalCheck where
 
 import Data.Aeson
 import Data.Scientific
@@ -13,6 +13,8 @@ import Data.Yaml as Yaml
 import System.Exit
 
 import Types.Base
+
+-- Implements SPEC-1 @relation(SPEC-1, scope=file)
 
 -- Parse a JSON/YAML value into a valid ExitCode value.
 parseExitCode :: Value -> Yaml.Parser ExitCode
@@ -30,24 +32,22 @@ formatExitCode e = case e of
 
 -- A Check based on an external command. Success or failure is determined by comparing the command's
 -- exit to an expected value.
-data CommandCheck
-    = CommandCheck
+data GlobalCheck
+    = GlobalCheck
     { name :: Text
     , command :: Command
     , expectedExit :: ExitCode
     }
     deriving (Show)
 
-
-instance FromJSON CommandCheck where
-    parseJSON = withObject "CommandCheck" $ \v -> do
+instance FromJSON GlobalCheck where
+    parseJSON = withObject "GlobalCheck" $ \v -> do
         name <- v .: "name"
         cmd <- v .: "command"
         exit <- parseExitCode =<< (v .: "expected_exit")
-        return $ CommandCheck name cmd exit
+        return $ GlobalCheck name cmd exit
 
-
-instance ToJSON CommandCheck where
+instance ToJSON GlobalCheck where
     toJSON c =
         object
             [ "name" .= c.name
@@ -55,21 +55,21 @@ instance ToJSON CommandCheck where
             , "expected_exit" .= formatExitCode c.expectedExit
             ]
 
-data CommandCheckFailure
-    = CommandCheckFailure
+data GlobalCheckFailure
+    = GlobalCheckFailure
     { expectedExit :: ExitCode
     , actualExit :: ExitCode
     , logs :: Text
     }
 
-instance ToJSON CommandCheckFailure where
+instance ToJSON GlobalCheckFailure where
     toJSON f =
         object
             [ "exitcode" .= formatExitCode f.actualExit
             , "logs" .= f.logs
             ]
 
-instance Show CommandCheckFailure where
+instance Show GlobalCheckFailure where
     show f = unlines [summary, logs]
       where
         summary =

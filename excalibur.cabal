@@ -19,11 +19,11 @@ executable excalibur
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Checks,
-                       Checks.CommandCheck,
+                       Checks.GlobalCheck,
                        Types,
                        Types.Base,
                        Types.Check,
-                       Types.Check.CommandCheck,
+                       Types.Check.GlobalCheck,
                        Types.CheckResult,
                        Util,
                        Util.TempCopy

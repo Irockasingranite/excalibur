@@ -40,14 +40,14 @@ resolveCommitRange repo range = do
 -- @relation(SPEC-6, scope=range_end)
 
 summarizeReport :: Report -> String
-summarizeReport report = unlines [globalSummary, localSummary]
+summarizeReport report = unlines [repoSummary, commitSummary]
   where
-    globalSummary = show globalPassed ++ "/" ++ show globalTotal ++ " global checks passed"
-    localSummary = show perCommitPassed ++ "/" ++ show perCommitTotal ++ " per-commit checks passed"
-    globalTotal = length report.globalReports
-    globalPassed = length $ report ^. #globalReports ^.. traversed % #result % _Success
-    perCommitTotal = length report.perCommitReports
-    perCommitPassed = length $ report ^. #perCommitReports ^.. traversed % #result % _Success
+    repoSummary = show repoPassed ++ "/" ++ show repoTotal ++ " repository checks passed"
+    commitSummary = show commitPassed ++ "/" ++ show commitTotal ++ " commit checks passed"
+    repoTotal = length report.repoReports
+    repoPassed = length $ report ^. #repoReports ^.. traversed % #result % _Success
+    commitTotal = length report.commitReports
+    commitPassed = length $ report ^. #commitReports ^.. traversed % #result % _Success
 
 -- Helper monad fold. Essentially a forM backed by a DList instead of a List.
 forMDList :: (Monad m) => [a] -> (a -> m b) -> m (DList b)
