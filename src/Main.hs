@@ -1,28 +1,28 @@
 module Main (main) where
 
 import Control.Monad
+import qualified Data.Aeson.Encode.Pretty as Json
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as T
-import Data.Yaml
+import qualified Data.Yaml as Yaml
 import Lens.Micro.Platform
 import System.Process.Typed
 
 import Types
 import Util
 
-performChecks :: CheckConfiguration -> IO ()
+performChecks :: CheckConfiguration -> IO [CheckResult]
 performChecks config = do
     inTempCopy "excalibur" $ \dir -> do
         putStrLn $ "Running checks in " ++ dir
         performGlobalChecks $ config ^. globalChecks
 
-performGlobalChecks :: [Check] -> IO ()
+performGlobalChecks :: [Check] -> IO [CheckResult]
 performGlobalChecks checks = do
-    results <- forM checks $ \c -> do
+    forM checks $ \c -> do
         putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
         performCheck c
-    print results
 
 performCheck :: Check -> IO CheckResult
 performCheck c = do
@@ -44,7 +44,10 @@ performCheck c = do
 main :: IO ()
 main = do
     configFile <- readFile "config.yaml"
-    let eConfig = decodeEither' (BS.pack configFile)
+    let eConfig = Yaml.decodeEither' (BS.pack configFile)
     case eConfig of
-        Right config -> performChecks config
         Left e -> print e
+        Right config -> do
+            results <- performChecks config
+            let encoded = Json.encodePretty' checkResultPrettyConfig results & LBS.unpack
+            writeFile "results.json" encoded

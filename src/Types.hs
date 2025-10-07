@@ -3,6 +3,8 @@
 
 module Types where
 
+import Data.Aeson
+import Data.Aeson.Encode.Pretty as Pretty
 import Data.Scientific
 import Data.Text (Text)
 import Data.Yaml
@@ -28,6 +30,11 @@ parseExitCode (Number n) = case toBoundedInteger n of
     Nothing -> fail "Invalid exit code"
 parseExitCode _ = fail "Invalid exit code"
 
+printExitCode :: ExitCode -> String
+printExitCode e = case e of
+    ExitSuccess -> "0"
+    ExitFailure n -> show n
+
 instance FromJSON Check where
     parseJSON = withObject "Check" $ \v -> do
         name <- v .: "name"
@@ -40,10 +47,26 @@ instance FromJSON Check where
                 , _checkExpectedExit = exit
                 }
 
+instance ToJSON Check where
+    toJSON c =
+        object
+            [ "name" .= (c ^. checkName)
+            , "command" .= (c ^. checkName)
+            , "expected_exit" .= printExitCode (c ^. checkExpectedExit)
+            ]
+
+checkKeyCmp :: Text -> Text -> Ordering
+checkKeyCmp = keyOrder ["name", "command", "expected_exit"]
+
 data CheckResultType
     = CheckResultPassed
     | CheckResultFailed
     deriving (Eq, Show)
+
+instance ToJSON CheckResultType where
+    toJSON c = case c of
+        CheckResultPassed -> String "passed"
+        CheckResultFailed -> String "failed"
 
 data CheckResult
     = CheckResult
@@ -55,6 +78,27 @@ data CheckResult
     deriving (Show)
 
 makeLenses ''CheckResult
+
+instance ToJSON CheckResult where
+    toJSON r =
+        object
+            [ "check" .= (r ^. resultCheck)
+            , "result" .= (r ^. resultType)
+            , "output" .= (r ^. resultOutput)
+            , "error" .= (r ^. resultError)
+            ]
+
+checkResultKeyCmp :: Text -> Text -> Ordering
+checkResultKeyCmp = keyOrder ["check", "result", "output", "error"] <> checkKeyCmp
+
+checkResultPrettyConfig :: Pretty.Config
+checkResultPrettyConfig =
+    Pretty.Config
+        { confIndent = Spaces 4
+        , confCompare = checkResultKeyCmp
+        , confNumFormat = Pretty.Generic
+        , confTrailingNewline = False
+        }
 
 data CheckConfiguration
     = CheckConfiguration
