@@ -1,85 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Types.Check
-where
+module Types.Check where
 
 import Control.Lens (makeLenses, makePrisms, (^.))
 import Data.Aeson
 import Data.Aeson.KeyMap as KM
-import Data.Scientific
 import Data.Text (Text)
 import Data.Yaml as Yaml
-import System.Exit
 
-import Types.Base
+import Types.Check.CommandCheck
 
-data FormatFileSpec
-    = FormatFilesAll
-    | FormatFilesChanged
-    | FormatFilesSpecific [FilePath]
-    deriving (Show)
-
-data ClangFormatCheck
-    = ClangFormatCheck
-    { _clangFormatStyleFile :: FilePath
-    , _clangFormatFileSpec :: FormatFileSpec
-    }
-    deriving (Show)
-
-makeLenses ''ClangFormatCheck
-
-instance FromJSON ClangFormatCheck where
-    parseJSON = withObject "ClangFormatCheck" $ \v -> do
-        styleFile <- v .: "style_file"
-        let files = FormatFilesAll -- TODO: Parse FormatFileSpec
-        return $ ClangFormatCheck styleFile files
-
-instance ToJSON ClangFormatCheck where
-    toJSON c =
-        object
-            [ "builtin" .= ("clang-format" :: String)
-            , "style_file" .= (c ^. clangFormatStyleFile)
-            , "files" .= ("undefined" :: String)
-            ]
-
-data CommandCheck
-    = CommandCheck
-    { _checkCommand :: Command
-    , _checkExpectedExit :: ExitCode
-    }
-    deriving (Show)
-
-makeLenses ''CommandCheck
-
-parseExitCode :: Value -> Yaml.Parser ExitCode
-parseExitCode (Number n) = case toBoundedInteger n of
-    Just 0 -> return ExitSuccess
-    Just nn -> return $ ExitFailure nn
-    Nothing -> fail "Invalid exit code"
-parseExitCode _ = fail "Invalid exit code"
-
-formatExitCode :: ExitCode -> String
-formatExitCode e = case e of
-    ExitSuccess -> "0"
-    ExitFailure n -> show n
-
-instance FromJSON CommandCheck where
-    parseJSON = withObject "CommandCheck" $ \v -> do
-        cmd <- v .: "command"
-        exit <- parseExitCode =<< (v .: "expected_exit")
-        return $ CommandCheck cmd exit
-
-instance ToJSON CommandCheck where
-    toJSON c =
-        object
-            [ "command" .= (c ^. checkCommand)
-            , "expected_exit" .= formatExitCode (c ^. checkExpectedExit)
-            ]
-
+-- A check to be performed.
 data Check
     = CheckCommandCheck CommandCheck
-    | CheckClangFormatCheck ClangFormatCheck
     deriving (Show)
 
 makePrisms ''Check
@@ -92,14 +26,13 @@ instance FromJSON Check where
                 mBuiltin <- o .:? "builtin" :: Parser (Maybe String)
                 case mBuiltin of
                     Nothing -> CheckCommandCheck <$> parseJSON (Object o)
-                    Just "clang-format" -> CheckClangFormatCheck <$> parseJSON (Object o)
                     _ -> fail "Unknown builtin check"
 
 instance ToJSON Check where
     toJSON c = case c of
         CheckCommandCheck cc -> toJSON cc
-        CheckClangFormatCheck cfc -> toJSON cfc
 
+-- A check with an attached name.
 data NamedCheck
     = NamedCheck
     { _checkName :: Text
@@ -124,6 +57,7 @@ instance ToJSON NamedCheck where
                 Object check -> Object (outer `union` check)
                 _ -> error "Invalid check encoding"
 
+-- A complete check configuration.
 data CheckConfiguration
     = CheckConfiguration
     { _globalChecks :: [NamedCheck]
@@ -133,8 +67,11 @@ data CheckConfiguration
 
 makeLenses ''CheckConfiguration
 
+-- Implements SPEC-1 @relation(SPEC-1, scope=range_start)
 instance FromJSON CheckConfiguration where
     parseJSON = withObject "CheckConfiguration" $ \o -> do
         global <- o .: "global"
         perCommit <- o .: "per_commit"
         return $ CheckConfiguration global perCommit
+
+-- @relation(SPEC-1, scope=range_end)

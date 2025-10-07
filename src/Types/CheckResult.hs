@@ -7,66 +7,24 @@ import Control.Lens (makeLenses, makePrisms, (^.))
 import Data.Aeson (KeyValue (..), ToJSON (..), Value (..), object)
 import Data.Aeson.KeyMap as KM
 import Data.DList
-import Data.Text (Text)
 import qualified Data.Text as T
-import System.Exit
 
 import Types.Base
 import Types.Check
-
-data CommandCheckFailure
-    = CommandCheckFailure
-    { _checkFailureExpectedExit :: ExitCode
-    , _checkFailureActualExit :: ExitCode
-    , _checkFailureLogs :: Text
-    }
-
-makeLenses ''CommandCheckFailure
-
-instance ToJSON CommandCheckFailure where
-    toJSON f =
-        object
-            [ "exitcode" .= formatExitCode (f ^. checkFailureActualExit)
-            , "logs" .= (f ^. checkFailureLogs)
-            ]
-
-instance Show CommandCheckFailure where
-    show f = unlines [summary, logs]
-      where
-        summary =
-            "Unexpected exit code: "
-                ++ formatExitCode (f ^. checkFailureActualExit)
-                ++ " (expected "
-                ++ formatExitCode (f ^. checkFailureExpectedExit)
-                ++ ")"
-        logs = unlines ["Logs: ", T.unpack (f ^. checkFailureLogs)]
-
-data ClangFormatCheckFailure
-    = ClangFormatCheckFailure
-
-instance ToJSON ClangFormatCheckFailure where
-    toJSON _f = object []
-
-instance Show ClangFormatCheckFailure where
-    show _f = "Format check failed" -- TODO
-
-makeLenses ''ClangFormatCheckFailure
+import Types.Check.CommandCheck
 
 data CheckFailure
     = CheckFailureCommandCheck CommandCheckFailure
-    | CheckFailureClangFormatCheck ClangFormatCheckFailure
 
 makePrisms ''CheckFailure
 
 instance Show CheckFailure where
     show f = case f of
         CheckFailureCommandCheck ff -> show ff
-        CheckFailureClangFormatCheck ff -> show ff
 
 instance ToJSON CheckFailure where
     toJSON f = case f of
         CheckFailureCommandCheck cf -> toJSON cf
-        CheckFailureClangFormatCheck cfcf -> toJSON cfcf
 
 data CheckResult
     = Success

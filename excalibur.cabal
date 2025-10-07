@@ -22,6 +22,7 @@ executable excalibur
                        Types,
                        Types.Base,
                        Types.Check,
+                       Types.Check.CommandCheck,
                        Types.CheckResult,
                        Util,
                        Util.TempCopy
