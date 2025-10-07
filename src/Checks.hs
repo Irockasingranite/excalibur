@@ -15,6 +15,9 @@ import Checks.CommandCheck
 import Types
 import Util
 
+-- @relation(SPEC-8, scope=file)
+-- @relation(SPEC-9, scope=file)
+
 -- Runs all checks given in a check configuration.
 -- Implements SPEC-8 and SPEC-9.
 performChecks :: CheckConfiguration -> FilePath -> [Commit] -> IO Report
@@ -22,16 +25,13 @@ performChecks config repo commits = do
     inTempCopy repo "excalibur" $ \dir -> do
         liftIO $ putStrLn $ "Running checks in " ++ dir
 
-        -- @relation(SPEC-8, scope=range_start)
         -- Global checks run only on final repository state
         let finalCommit = getFinal commits
             globalContext = CheckContext repo finalCommit
             globalChecks_ = config ^. globalChecks
         liftIO $ checkoutCommit repo finalCommit
         globalReports_ <- runReaderT (performChecksInContext globalChecks_) globalContext
-        -- @relation(SPEC-8, scope=range_end)
 
-        -- @relation(SPEC-9, scope=range_start)
         -- Per-Commit checks run on each commit in the range
         perCommitReports_ <- forMDList commits $ \c -> do
             let context = CheckContext repo c
@@ -39,7 +39,6 @@ performChecks config repo commits = do
             liftIO $ checkoutCommit repo c
             liftIO $ putStrLn $ "Checking commit " ++ T.unpack c
             runReaderT (performChecksInContext checks) context
-        -- @relation(SPEC-9, scope=range_end)
 
         -- Flatten nested DLists of reports into a single DList
         let allPerCommitReports = (DL.concat . DL.toList) perCommitReports_

@@ -78,6 +78,9 @@ TITLE: Running Global Checks
 STATEMENT: >>>
 Checks that are configured as 'global' shall be run on the final commit of the specified range, or on ``HEAD`` if no range is specified.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-1
 
 [REQUIREMENT]
 UID: SPEC-9
@@ -88,20 +91,9 @@ Checks that are configured as 'per-commit' shall be run as follows:
    * For each of these states, every 'per-commit' check is run
 <<<
 
-[SPECIFICATION]
-UID: SPEC-1
-TITLE: Check Configuration File Format
-STATEMENT: >>>
-Checks must be defined in a YAML file of the following format:
-
-.. code:: yaml
-
-   global: # A list of checks to be performed on the current repository state
-   per_commit: # A list of checks to be performed on each commit in the specified range
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-4
+[[SECTION]]
+UID: SEC-SPEC-CLI-OPTIONS
+TITLE: Command Line Options
 
 [SPECIFICATION]
 UID: SPEC-2
@@ -125,6 +117,53 @@ RELATIONS:
 - TYPE: Parent
   VALUE: REQ-2
 
+[[/SECTION]]
+
+[[SECTION]]
+UID: SEC-SPEC-CHECK-CONFIG
+TITLE: Check Configuration
+
+[SPECIFICATION]
+UID: SPEC-1
+TITLE: Check Configuration File Format
+STATEMENT: >>>
+Checks must be defined in a YAML file of the following format:
+
+.. code:: yaml
+
+   global: # A list of checks to be performed on the current repository state
+   per_commit: # A list of checks to be performed on each commit in the specified range
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-4
+
+[SPECIFICATION]
+UID: SPEC-5
+TITLE: External Check Commands
+STATEMENT: >>>
+External checks shall be specified as follows:
+
+.. code:: yaml
+
+   - name: The Global Check # Check name
+     command: run_check # The command to be run
+     expected_exit: 0 # Exit code of the command indicating success
+
+Each such check shall consist of:
+   * Running the specified command in the repository root
+   * Comparing the exit code to the expected value
+
+If the expected and actual exit codes do not match, the check shall be considered failed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-6
+- TYPE: Parent
+  VALUE: SPEC-1
+
+[[/SECTION]]
+
 [SPECIFICATION]
 UID: SPEC-6
 TITLE: Commit Range Resolution
@@ -145,6 +184,10 @@ repository. This copy must be deleted after use.
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-3
+
+[[SECTION]]
+UID: SEC-SPEC-CHECK-REPORT
+TITLE: Check Report
 
 [SPECIFICATION]
 UID: SPEC-7
@@ -174,29 +217,10 @@ The final report detailing all check results shall be in JSON format. It shall h
 
 in which each entry contains the full check definition, and entries for failed checks contain additional information relevant to the check in the ``details`` field.
 <<<
-
-[SPECIFICATION]
-UID: SPEC-5
-TITLE: External Check Commands
-STATEMENT: >>>
-External checks shall be specified as follows:
-
-.. code:: yaml
-
-   - name: The Global Check # Check name
-     command: run_check # The command to be run
-     expected_exit: 0 # Exit code of the command indicating success
-
-Each such check shall consist of:
-   * Running the specified command in the repository root
-   * Comparing the exit code to the expected value
-
-If the expected and actual exit codes do not match, the check shall be considered failed.
-<<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: REQ-6
-- TYPE: Parent
-  VALUE: SPEC-1
+  VALUE: REQ-7
+
+[[/SECTION]]
 
 [[/SECTION]]
