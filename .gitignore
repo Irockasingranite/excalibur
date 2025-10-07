@@ -1,0 +1,48 @@
+# Stack
+.stack-work/
+
+# Cabal
+dist/
+dist-*/
+dist-newstyle/
+cabal-dev/
+.cabal-sandbox/
+cabal.sandbox.config
+cabal.project.local
+cabal.project.local~
+setup-config
+
+# GHC / Haskell artifacts
+*.o
+*.hi
+*.hie
+*.dyn_o
+*.dyn_hi
+*.prof
+*.hp
+*.eventlog
+*.tix
+.ghc.environment.*
+
+# Coverage
+.hpc/
+
+# Haskell tooling
+.hie/
+.hls/
+.hdevtools.sock
+
+# Local REPL config
+.ghci
+
+# Tags
+tags
+TAGS
+
+# Editor/OS
+.DS_Store
+*~
+*.swp
+*.swo
+.idea/
+.vscode/

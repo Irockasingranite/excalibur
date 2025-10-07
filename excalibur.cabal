@@ -1,0 +1,40 @@
+cabal-version:       2.2
+
+name:                excalibur
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/irockasingranite/excalibur#readme
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              Sarah Renkhoff
+maintainer:          sarah.renkhoff@gmail.com
+copyright:           2025 Sarah Renkhoff
+category:            Development
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+
+executable excalibur
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       Types,
+                       Util
+                        
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       directory,
+                       exceptions,
+                       filepath,
+                       microlens-platform,
+                       temporary,
+                       text
+  ghc-options:         -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-export-lists
+                       -Wmissing-home-modules
+                       -Wpartial-fields
+                       -Wredundant-constraints
