@@ -114,3 +114,8 @@ main = do
             -- Create report file
             let encoded = JSON.encodePretty report & LBS.unpack
             writeFile outputFile encoded
+
+            -- Return failure if any check failed
+            when
+                (summary.repoChecksFailed > 0 || summary.commitChecksFailed > 0)
+                exitFailure

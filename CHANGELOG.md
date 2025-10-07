@@ -8,7 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
-- Changed default commit range from `HEAD` to `HEAD~1..HEAD`
+- Changed default commit range from `HEAD` to `HEAD~1..HEAD`.
+- Changed return code to failure if any checks failed during the run.
 
 ## 0.1.0 - 2025-10-07
 
