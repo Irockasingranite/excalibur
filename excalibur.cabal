@@ -27,6 +27,7 @@ executable excalibur
                        Types.CheckResult,
                        Util,
                        Util.ResolveCommitRange,
+                       Util.ResolvePaths,
                        Util.TempCopy
                         
   default-language:    Haskell2010
@@ -38,6 +39,7 @@ executable excalibur
                        dlist,
                        exceptions,
                        filepath,
+                       Glob,
                        mtl,
                        optics,
                        optparse-applicative,

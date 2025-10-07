@@ -156,6 +156,20 @@ RELATIONS:
   VALUE: REQ-2
 
 [SPECIFICATION]
+UID: SPEC-8
+TITLE: File Pattern Resolution
+STATEMENT: >>>
+For checks which include configuration via file patterns (e.g. on which files to operate), these patterns shall be resolved by standard 'glob'-rules.
+
+Specifically:
+   * ``/`` shall be the path separator denoting subdirectories
+   * ``*`` shall match any number of characters (including the empty string) except path seperators
+   * ``**`` shall match any number of characters, *including* path separators, but *excluding* the empty string
+
+Other operators may also be supported.
+<<<
+
+[SPECIFICATION]
 UID: SPEC-4
 TITLE: Perform Checks in Temporary Copy
 STATEMENT: >>>
