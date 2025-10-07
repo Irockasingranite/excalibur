@@ -90,6 +90,8 @@ STATEMENT: >>>
 The check configuration file must be selectable via the command line option ``--config [FILE]`` or
 ``-c [FILE]``
 If the option is unset, a default value of ``./excalibur.yaml`` shall be used.
+
+The given path shall be resolved relative to root of the repository under check.
 <<<
 RELATIONS:
 - TYPE: Parent
