@@ -78,7 +78,6 @@ data CheckResult
     { _resultCheck :: Check
     , _resultType :: CheckResultType
     , _resultOutput :: Text
-    , _resultError :: Text
     }
     deriving (Show)
 
@@ -90,7 +89,6 @@ instance ToJSON CheckResult where
             [ "check" .= (r ^. resultCheck)
             , "result" .= (r ^. resultType)
             , "output" .= (r ^. resultOutput)
-            , "error" .= (r ^. resultError)
             ]
 
 checkResultKeyCmp :: Text -> Text -> Ordering

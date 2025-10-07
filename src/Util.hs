@@ -74,10 +74,9 @@ resolveCommitRange repo range = do
 formatCheckResult :: CheckResult -> String
 formatCheckResult c = case c ^. resultType of
     CheckResultPassed -> statusline
-    CheckResultFailed -> unlines [statusline, outputline, errorline]
+    CheckResultFailed -> unlines [statusline, outputline]
   where
     name = c ^. resultCheck . checkName & T.unpack
     status = show (c ^. resultType)
     statusline = name ++ ": " ++ status
     outputline = "Output:\n" ++ T.unpack (c ^. resultOutput)
-    errorline = "Error:\n" ++ T.unpack (c ^. resultError)

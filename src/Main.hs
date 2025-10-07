@@ -56,7 +56,7 @@ performCheck :: FilePath -> Check -> IO CheckResult
 performCheck wd c = do
     let cmd = c ^. checkCommand & T.unpack
         expected = c ^. checkExpectedExit
-    (exit, out, err) <- readProcess (setWorkingDir wd $ shell cmd)
+    (exit, out) <- readProcessInterleaved (setWorkingDir wd $ shell cmd)
     let result =
             if exit == expected
                 then CheckResultPassed
@@ -65,7 +65,6 @@ performCheck wd c = do
         CheckResult
             { _resultCheck = c
             , _resultOutput = (T.pack . LBS.unpack) out
-            , _resultError = (T.pack . LBS.unpack) err
             , _resultType = result
             }
 
