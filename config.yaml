@@ -1,0 +1,12 @@
+global:
+  - name: The Global Check
+    command: ls .
+    expected_exit: 0
+  - name: The Other Global Check
+    command: ls -a .
+    expected_exit: 1
+
+per_commit:
+  - name: The Local Check
+    command: pwd
+    expected_exit: 0
