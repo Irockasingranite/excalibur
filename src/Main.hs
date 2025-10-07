@@ -103,9 +103,9 @@ main = do
     case eConfig of
         Left e -> print e
         Right config -> do
-            ((), results) <- runStateT (performChecks config repoDir commits) mempty
+            report <- performChecks config repoDir commits
             putStrLn $ replicate 40 '-'
 
-            putStrLn $ summarizeReport results
-            let encoded = JSON.encodePretty results & LBS.unpack
+            putStrLn $ summarizeReport report
+            let encoded = JSON.encodePretty report & LBS.unpack
             writeFile outputFile encoded
