@@ -125,7 +125,7 @@ RELATIONS:
 
 [SPECIFICATION]
 UID: SPEC-1
-TITLE: Check Configuration File Format
+TITLE: Check Configuration Format
 STATEMENT: >>>
 Checks must be defined in a YAML file of the following format:
 
@@ -151,7 +151,7 @@ Each check listed shall be configured as follows:
 
 If the ``files`` key is not set, the check is considered a "global" check, and will be run once in the repository root.
 
-If the ``files`` key is set to a list of file patterns, the check is considered to be "per-file", and the given command will be run for each file in the repository matching any of the given patterns. The given command will be run once for each such file, with the path of the file being passed as a command line argument.
+If the ``files`` key is set to a list of file patterns, the check is considered to be "per-file", and the given command will be run for each file in the repository matching any of the given patterns. The given command will be run once for each such file.
 
 If the ``changed-only`` field is set to ``True``, only files that have changed will be checked. For ``on-repository`` checks, a file is considered to have changed if it was modified by any commit in the given range. For ``on-commit`` checks, a file is considered to have changed if it was modified by that specific commit.
 
@@ -160,6 +160,28 @@ If the exit code of a check command does not match the expected value, the check
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-4
+
+[SPECIFICATION]
+UID: SPEC-10
+TITLE: Variables in Check Configuration
+STATEMENT: >>>
+A number of defined variables shall be usable within check commands, to be replaced by specific information before the check is run.
+
+These shall include:
+
+.. list-table:: Check Command Variables
+   :widths: 3 10
+
+   * - **Variable**
+     - **Description**
+   * - ``${commit-range}``
+     - The commit range to be checked as given to Excalibur
+   * - ``${filename}``
+     - The name of the particular file being checked, if the ``files`` option is set for the check. If ``files`` is unset, it will be set to ``.``, i.e. the directory the check is run in.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SPEC-1
 
 [SPECIFICATION]
 UID: SPEC-6
