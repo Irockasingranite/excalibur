@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy.Char8 as BS
 import System.Process.Typed
 import Types
 import Util.ResolvePaths
+import Util.RunCommand
 
 -- Implements SPEC-1 @relation(SPEC-1, scope=file)
 
@@ -43,10 +44,7 @@ runFileCheck check = do
 
     -- Run command on each file and collect output
     results <- forM filesToCheck $ \file -> do
-        let cmd = check.command & T.unpack
-            process = setWorkingDir wd $ shell (cmd ++ " " ++ file)
-        (exit, logs) <- readProcessInterleaved process
-        return (exit, logs)
+        runCommandWithStderrIn wd (T.unpack check.command ++ " " ++ file)
 
     -- Aggregate results:
     -- For Exit codes a single failure fails the whole check
@@ -90,8 +88,7 @@ getChangedFiles repo commits = do
 
     -- Ask git for list of changed filenames
     let cmd = "git diff --name-only " ++ show commitFrom ++ " " ++ show commitTo
-        process = setWorkingDir repo $ shell cmd
-    (exit, out, _) <- liftIO $ readProcess process
+    (exit, out) <- liftIO $ runCommandIn repo cmd
 
     case exit of
         ExitFailure _ -> return Nothing

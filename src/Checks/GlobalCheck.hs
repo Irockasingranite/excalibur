@@ -10,9 +10,9 @@ import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as T
 import Optics
-import System.Process.Typed
 
 import Types
+import Util.RunCommand
 
 -- Implements SPEC-1 @relation(SPEC-1, scope=file)
 
@@ -22,7 +22,7 @@ runGlobalCheck check = do
     commit <- asks (view #commit)
     let cmd = check.command & T.unpack
         expected = check.expectedExit
-    (exit, out) <- readProcessInterleaved (setWorkingDir wd $ shell cmd)
+    (exit, out) <- runCommandWithStderrIn wd cmd
     let result =
             if exit == expected
                 then Success

@@ -30,6 +30,7 @@ executable excalibur
                        Util,
                        Util.ResolveCommitRange,
                        Util.ResolvePaths,
+                       Util.RunCommand,
                        Util.TempCopy
                         
   default-language:    Haskell2010
