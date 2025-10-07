@@ -24,7 +24,7 @@ executable excalibur
                        Types.Base,
                        Types.Check,
                        Types.Check.GlobalCheck,
-                       Types.CheckResult,
+                       Types.CheckReport,
                        Util,
                        Util.ResolveCommitRange,
                        Util.ResolvePaths,

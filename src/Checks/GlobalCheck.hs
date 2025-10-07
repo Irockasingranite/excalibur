@@ -28,12 +28,11 @@ runGlobalCheck check = do
                 then Success
                 else
                     Failure $
-                        CheckFailureGlobalCheck $
-                            GlobalCheckFailure
-                                { expectedExit = expected
-                                , actualExit = exit
-                                , logs = (T.pack . LBS.unpack) out
-                                }
+                        CheckFailure
+                            { expectedExit = expected
+                            , actualExit = exit
+                            , logs = (T.pack . LBS.unpack) out
+                            }
     return $
         CheckReport
             { check = CheckGlobalCheck check

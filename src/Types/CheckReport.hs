@@ -10,28 +10,45 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
-module Types.CheckResult where
+module Types.CheckReport where
 
 import Data.Aeson (KeyValue (..), ToJSON (..), Value (..), object)
 import Data.Aeson.KeyMap as KM
 import Data.DList
+import Data.Text (Text)
 import qualified Data.Text as T
 import Optics (makeFieldLabelsNoPrefix, makePrisms)
+import System.Exit
 
 import Types.Base
 import Types.Check
-import Types.Check.GlobalCheck
+
+-- Implements SPEC-7 @relation(SPEC-7, scope=file)
 
 data CheckFailure
-    = CheckFailureGlobalCheck GlobalCheckFailure
-
-instance Show CheckFailure where
-    show f = case f of
-        CheckFailureGlobalCheck ff -> show ff
+    = CheckFailure
+    { expectedExit :: ExitCode
+    , actualExit :: ExitCode
+    , logs :: Text
+    }
 
 instance ToJSON CheckFailure where
-    toJSON f = case f of
-        CheckFailureGlobalCheck cf -> toJSON cf
+    toJSON f =
+        object
+            [ "exitcode" .= formatExitCode f.actualExit
+            , "logs" .= f.logs
+            ]
+
+instance Show CheckFailure where
+    show f = unlines [summary, logs]
+      where
+        summary =
+            "Unexpected exit code: "
+                ++ formatExitCode f.actualExit
+                ++ " (expected "
+                ++ formatExitCode f.expectedExit
+                ++ ")"
+        logs = unlines ["Logs: ", T.unpack f.logs]
 
 data CheckResult
     = Success
@@ -44,14 +61,15 @@ instance Show CheckResult where
         Success -> "Success"
         Failure f -> "Failure: " ++ show f
 
--- @relation(SPEC-7, scope=range_start)
 -- Encodes a check result as JSON. Depending on the result it may contain different fields.
 instance ToJSON CheckResult where
     toJSON r = case r of
         Success -> object ["result" .= String "Success"]
-        Failure f -> object ["result" .= String "Failure", "details" .= toJSON f]
-
--- @relation(SPEC-7, scope=range_end)
+        Failure f ->
+            object
+                [ "result" .= String "Failure"
+                , "details" .= toJSON f
+                ]
 
 data CheckReport
     = CheckReport
@@ -71,7 +89,6 @@ instance Show CheckReport where
             ++ ": "
             ++ show r.result
 
--- @relation(SPEC-7, scope=range_start)
 -- Encodes a single check report as JSON. The result itself is encoded separately, and the result is
 -- merged with the additional fields here.
 instance ToJSON CheckReport where
@@ -85,8 +102,6 @@ instance ToJSON CheckReport where
          in case oResult of
                 Object res -> Object (outer `union` res)
                 _ -> error "Invalid result encoding"
-
--- @relation(SPEC-7, scope=range_end)
 
 data Report
     = Report
@@ -102,7 +117,6 @@ instance Semigroup Report where
 instance Monoid Report where
     mempty = Report mempty mempty
 
--- @relation(SPEC-7, scope=range_start)
 -- Encodes the full report as JSON, grouping the reports by scope.
 instance ToJSON Report where
     toJSON r =
@@ -110,5 +124,3 @@ instance ToJSON Report where
             [ "on-repository" .= r.repoReports
             , "on-commit" .= r.commitReports
             ]
-
--- @relation(SPEC-7, scope=range_end)
