@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+
 module Util (
     checkoutCommit,
     forMDList,
@@ -6,15 +9,15 @@ module Util (
     summarizeReport,
 ) where
 
-import Control.Lens
 import Control.Monad
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
 import Data.DList (DList)
 import qualified Data.DList as DL
 import qualified Data.Text as T
+import Optics
 import System.Process.Typed
-import Types
 
+import Types
 import Util.TempCopy (inTempCopy) -- re-exported
 
 checkoutCommit :: FilePath -> Commit -> IO ()
@@ -37,14 +40,14 @@ resolveCommitRange repo range = do
 -- @relation(SPEC-6, scope=range_end)
 
 summarizeReport :: Report -> String
-summarizeReport r = unlines [globalSummary, localSummary]
+summarizeReport report = unlines [globalSummary, localSummary]
   where
     globalSummary = show globalPassed ++ "/" ++ show globalTotal ++ " global checks passed"
     localSummary = show perCommitPassed ++ "/" ++ show perCommitTotal ++ " per-commit checks passed"
-    globalTotal = length $ r ^. globalReports
-    globalPassed = length $ r ^. globalReports ^.. traverse . reportResult . _Success
-    perCommitTotal = length $ r ^. perCommitReports
-    perCommitPassed = length $ r ^. perCommitReports ^.. traverse . reportResult . _Success
+    globalTotal = length report.globalReports
+    globalPassed = length $ report ^. #globalReports ^.. traversed % #result % _Success
+    perCommitTotal = length report.perCommitReports
+    perCommitPassed = length $ report ^. #perCommitReports ^.. traversed % #result % _Success
 
 -- Helper monad fold. Essentially a forM backed by a DList instead of a List.
 forMDList :: (Monad m) => [a] -> (a -> m b) -> m (DList b)

@@ -1,9 +1,9 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Types.Check.CommandCheck where
 
-import Control.Lens (makeLenses, makePrisms, (^.))
 import Data.Aeson
 import Data.Scientific
 import Data.Text (Text)
@@ -32,14 +32,12 @@ formatExitCode e = case e of
 -- Implements REQ-6. @relation(REQ-6, scope=range_start)
 data CommandCheck
     = CommandCheck
-    { _checkCommand :: Command
-    , _checkExpectedExit :: ExitCode
+    { command :: Command
+    , expectedExit :: ExitCode
     }
     deriving (Show)
 
 -- @relation(REQ-6, scope=range_end)
-
-makeLenses ''CommandCheck
 
 -- Implements SPEC-5 @relation(SPEC-5, scope=range_start)
 instance FromJSON CommandCheck where
@@ -53,24 +51,22 @@ instance FromJSON CommandCheck where
 instance ToJSON CommandCheck where
     toJSON c =
         object
-            [ "command" .= (c ^. checkCommand)
-            , "expected_exit" .= formatExitCode (c ^. checkExpectedExit)
+            [ "command" .= c.command
+            , "expected_exit" .= formatExitCode c.expectedExit
             ]
 
 data CommandCheckFailure
     = CommandCheckFailure
-    { _checkFailureExpectedExit :: ExitCode
-    , _checkFailureActualExit :: ExitCode
-    , _checkFailureLogs :: Text
+    { expectedExit :: ExitCode
+    , actualExit :: ExitCode
+    , logs :: Text
     }
-
-makeLenses ''CommandCheckFailure
 
 instance ToJSON CommandCheckFailure where
     toJSON f =
         object
-            [ "exitcode" .= formatExitCode (f ^. checkFailureActualExit)
-            , "logs" .= (f ^. checkFailureLogs)
+            [ "exitcode" .= formatExitCode f.actualExit
+            , "logs" .= f.logs
             ]
 
 instance Show CommandCheckFailure where
@@ -78,8 +74,8 @@ instance Show CommandCheckFailure where
       where
         summary =
             "Unexpected exit code: "
-                ++ formatExitCode (f ^. checkFailureActualExit)
+                ++ formatExitCode f.actualExit
                 ++ " (expected "
-                ++ formatExitCode (f ^. checkFailureExpectedExit)
+                ++ formatExitCode f.expectedExit
                 ++ ")"
-        logs = unlines ["Logs: ", T.unpack (f ^. checkFailureLogs)]
+        logs = unlines ["Logs: ", T.unpack f.logs]

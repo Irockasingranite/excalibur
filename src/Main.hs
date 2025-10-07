@@ -1,11 +1,9 @@
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Main (main) where
 
-import Control.Lens
 import Control.Monad
-import Control.Monad.Trans.State
 import qualified Data.Aeson.Encode.Pretty as JSON
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -13,6 +11,7 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
+import Optics
 import Options.Applicative as O
 import System.Exit
 
@@ -22,13 +21,11 @@ import Util
 
 data CmdLineOptions
     = CmdLineOptions
-    { _optionsCommits :: Text
-    , _optionsConfigFile :: FilePath
-    , _optionsOutputFile :: FilePath
-    , _optionsRepository :: FilePath
+    { commits :: Text
+    , configFile :: FilePath
+    , outputFile :: FilePath
+    , repository :: FilePath
     }
-
-makeLenses ''CmdLineOptions
 
 parseOptions :: Parser CmdLineOptions
 parseOptions =
@@ -83,10 +80,10 @@ main :: IO ()
 main = do
     options <- execParser opts
 
-    let repoDir = options ^. optionsRepository
-        configFile = options ^. optionsConfigFile
-        commitRange = options ^. optionsCommits
-        outputFile = options ^. optionsOutputFile
+    let repoDir = options.repository
+        configFile_ = options.configFile
+        commitRange = options.commits
+        outputFile_ = options.outputFile
 
     mCommits <- resolveCommitRange repoDir (T.unpack commitRange)
 
@@ -94,18 +91,18 @@ main = do
         putStrLn $ "Failed to resolve commit range " ++ T.unpack commitRange
         exitFailure
 
-    let commits = fromMaybe [] mCommits
+    let commits_ = fromMaybe [] mCommits
 
-    configContents <- readFile configFile
+    configContents <- readFile configFile_
     let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
     print eConfig
 
     case eConfig of
         Left e -> print e
         Right config -> do
-            report <- performChecks config repoDir commits
+            report <- performChecks config repoDir commits_
             putStrLn $ replicate 40 '-'
 
             putStrLn $ summarizeReport report
             let encoded = JSON.encodePretty report & LBS.unpack
-            writeFile outputFile encoded
+            writeFile outputFile_ encoded

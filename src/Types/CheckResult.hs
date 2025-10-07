@@ -1,13 +1,21 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Types.CheckResult where
 
-import Control.Lens (makeLenses, makePrisms, (^.))
 import Data.Aeson (KeyValue (..), ToJSON (..), Value (..), object)
 import Data.Aeson.KeyMap as KM
 import Data.DList
 import qualified Data.Text as T
+import Optics (makeFieldLabelsNoPrefix, makePrisms)
 
 import Types.Base
 import Types.Check
@@ -15,8 +23,6 @@ import Types.Check.CommandCheck
 
 data CheckFailure
     = CheckFailureCommandCheck CommandCheckFailure
-
-makePrisms ''CheckFailure
 
 instance Show CheckFailure where
     show f = case f of
@@ -48,46 +54,46 @@ instance ToJSON CheckResult where
 
 data CheckReport
     = CheckReport
-    { _reportCheck :: NamedCheck
-    , _reportResult :: CheckResult
-    , _reportCommit :: Commit
+    { check :: NamedCheck
+    , result :: CheckResult
+    , commit :: Commit
     }
 
-makeLenses ''CheckReport
+makeFieldLabelsNoPrefix ''CheckReport
 
 instance Show CheckReport where
     show r =
         "Check "
-            ++ show (r ^. reportCheck . checkName)
+            ++ show r.check.name
             ++ " on "
-            ++ T.unpack (r ^. reportCommit)
+            ++ T.unpack r.commit
             ++ ": "
-            ++ show (r ^. reportResult)
+            ++ show r.result
 
 -- @relation(SPEC-7, scope=range_start)
 -- Encodes a single check report as JSON. The result itself is encoded separately, and the result is
 -- merged with the additional fields here.
 instance ToJSON CheckReport where
     toJSON r =
-        let oResult = toJSON (r ^. reportResult)
+        let oResult = toJSON r.result
             outer =
                 KM.fromList
-                    [ "check" .= (r ^. reportCheck)
-                    , "commit" .= (r ^. reportCommit)
+                    [ "check" .= r.check
+                    , "commit" .= r.commit
                     ]
          in case oResult of
-                Object result -> Object (outer `union` result)
+                Object res -> Object (outer `union` res)
                 _ -> error "Invalid result encoding"
 
 -- @relation(SPEC-7, scope=range_end)
 
 data Report
     = Report
-    { _globalReports :: DList CheckReport
-    , _perCommitReports :: DList CheckReport
+    { globalReports :: DList CheckReport
+    , perCommitReports :: DList CheckReport
     }
 
-makeLenses ''Report
+makeFieldLabelsNoPrefix ''Report
 
 instance Semigroup Report where
     (Report g1 p1) <> (Report g2 p2) = Report (g1 <> g2) (p1 <> p2)
@@ -100,8 +106,8 @@ instance Monoid Report where
 instance ToJSON Report where
     toJSON r =
         object
-            [ "global" .= (r ^. globalReports)
-            , "per_commit" .= (r ^. perCommitReports)
+            [ "global" .= r.globalReports
+            , "per_commit" .= r.perCommitReports
             ]
 
 -- @relation(SPEC-7, scope=range_end)

@@ -38,7 +38,7 @@ executable excalibur
                        exceptions,
                        filepath,
                        mtl,
-                       lens,
+                       optics,
                        optparse-applicative,
                        scientific,
                        temporary,

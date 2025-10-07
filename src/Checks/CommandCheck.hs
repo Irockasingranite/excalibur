@@ -1,24 +1,28 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+
 module Checks.CommandCheck (
     performCommandCheck,
 ) where
 
 -- Implements SPEC-5 @relation(SPEC-5, scope=file)
 
-import Control.Lens
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Text (Text)
 import qualified Data.Text as T
+import Optics
 import System.Process.Typed
 
 import Types
 
 performCommandCheck :: Text -> CommandCheck -> ReaderT CheckContext IO CheckReport
 performCommandCheck name check = do
-    wd <- view contextDirectory
-    commit <- view contextCommit
-    let cmd = check ^. checkCommand & T.unpack
-        expected = check ^. checkExpectedExit
+    wd <- asks (view #directory)
+    commit <- asks (view #commit)
+    let cmd = check.command & T.unpack
+        expected = check.expectedExit
     (exit, out) <- readProcessInterleaved (setWorkingDir wd $ shell cmd)
     let result =
             if exit == expected
@@ -27,13 +31,13 @@ performCommandCheck name check = do
                     Failure $
                         CheckFailureCommandCheck $
                             CommandCheckFailure
-                                { _checkFailureExpectedExit = expected
-                                , _checkFailureActualExit = exit
-                                , _checkFailureLogs = (T.pack . LBS.unpack) out
+                                { expectedExit = expected
+                                , actualExit = exit
+                                , logs = (T.pack . LBS.unpack) out
                                 }
     return $
         CheckReport
-            { _reportCheck = NamedCheck name (CheckCommandCheck check)
-            , _reportCommit = commit
-            , _reportResult = result
+            { check = NamedCheck name (CheckCommandCheck check)
+            , commit = commit
+            , result = result
             }

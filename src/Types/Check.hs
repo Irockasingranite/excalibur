@@ -1,13 +1,22 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Types.Check where
 
-import Control.Lens (makeLenses, makePrisms, (^.))
 import Data.Aeson
 import Data.Aeson.KeyMap as KM
 import Data.Text (Text)
 import Data.Yaml as Yaml
+import Optics.TH
 
 import Types.Base
 import Types.Check.CommandCheck
@@ -16,8 +25,6 @@ import Types.Check.CommandCheck
 data Check
     = CheckCommandCheck CommandCheck
     deriving (Show)
-
-makePrisms ''Check
 
 instance FromJSON Check where
     parseJSON =
@@ -36,39 +43,35 @@ instance ToJSON Check where
 -- A check with an attached name.
 data NamedCheck
     = NamedCheck
-    { _checkName :: Text
-    , _checkInner :: Check
+    { name :: Text
+    , inner :: Check
     }
     deriving (Show)
-
-makeLenses ''NamedCheck
 
 instance FromJSON NamedCheck where
     parseJSON =
         withObject "NamedCheck" $ \v -> do
-            name <- v .: "name"
+            name_ <- v .: "name"
             check <- parseJSON (Object v)
-            return $ NamedCheck name check
+            return $ NamedCheck name_ check
 
 instance ToJSON NamedCheck where
     toJSON nc =
-        let oCheck = toJSON (nc ^. checkInner)
-            outer = KM.fromList ["name" .= (nc ^. checkName)]
+        let oCheck = toJSON nc.inner
+            outer = KM.fromList ["name" .= nc.name]
          in case oCheck of
                 Object check -> Object (outer `union` check)
                 _ -> error "Invalid check encoding"
 
+-- Implements SPEC-1 @relation(SPEC-1, scope=range_start)
 -- A complete check configuration.
 data CheckConfiguration
     = CheckConfiguration
-    { _globalChecks :: [NamedCheck]
-    , _perCommitChecks :: [NamedCheck]
+    { globalChecks :: [NamedCheck]
+    , perCommitChecks :: [NamedCheck]
     }
     deriving (Show)
 
-makeLenses ''CheckConfiguration
-
--- Implements SPEC-1 @relation(SPEC-1, scope=range_start)
 instance FromJSON CheckConfiguration where
     parseJSON = withObject "CheckConfiguration" $ \o -> do
         global <- o .: "global"
@@ -80,8 +83,8 @@ instance FromJSON CheckConfiguration where
 -- Context a check runs in
 data CheckContext
     = CheckContext
-    { _contextDirectory :: FilePath
-    , _contextCommit :: Commit
+    { directory :: FilePath
+    , commit :: Commit
     }
 
-makeLenses ''CheckContext
+makeFieldLabelsNoPrefix ''CheckContext
