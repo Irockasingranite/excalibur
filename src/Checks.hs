@@ -53,7 +53,7 @@ performChecks config repo commits = do
     getFinal (_ : cs) = getFinal cs -- Recurse range to last one
 
 -- Run a list of checks in a context. Assumes the right commit has been checked out.
-performChecksInContext :: [NamedCheck] -> ReaderT CheckContext IO (DList CheckReport)
+performChecksInContext :: [Check] -> ReaderT CheckContext IO (DList CheckReport)
 performChecksInContext checks = do
     forMDList checks $ \c -> do
         res <- performCheck c
@@ -61,8 +61,7 @@ performChecksInContext checks = do
         return res
 
 -- Runs a single check in a context. Can read the context to fill out report details as needed.
-performCheck :: NamedCheck -> ReaderT CheckContext IO CheckReport
+performCheck :: Check -> ReaderT CheckContext IO CheckReport
 performCheck check = do
-    let name = check.name
-    case check.inner of
-        CheckCommandCheck c -> performCommandCheck name c
+    case check of
+        CheckCommandCheck c -> performCommandCheck c

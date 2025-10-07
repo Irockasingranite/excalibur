@@ -55,7 +55,7 @@ instance ToJSON CheckResult where
 
 data CheckReport
     = CheckReport
-    { check :: NamedCheck
+    { check :: Check
     , result :: CheckResult
     , commit :: Commit
     }
@@ -65,7 +65,7 @@ makeFieldLabelsNoPrefix ''CheckReport
 instance Show CheckReport where
     show r =
         "Check "
-            ++ show r.check.name
+            ++ show r.check
             ++ " on "
             ++ T.unpack r.commit
             ++ ": "

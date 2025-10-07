@@ -10,15 +10,14 @@ module Checks.CommandCheck (
 
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Text (Text)
 import qualified Data.Text as T
 import Optics
 import System.Process.Typed
 
 import Types
 
-performCommandCheck :: Text -> CommandCheck -> ReaderT CheckContext IO CheckReport
-performCommandCheck name check = do
+performCommandCheck :: CommandCheck -> ReaderT CheckContext IO CheckReport
+performCommandCheck check = do
     wd <- asks (view #directory)
     commit <- asks (view #commit)
     let cmd = check.command & T.unpack
@@ -37,7 +36,7 @@ performCommandCheck name check = do
                                 }
     return $
         CheckReport
-            { check = NamedCheck name (CheckCommandCheck check)
+            { check = CheckCommandCheck check
             , commit = commit
             , result = result
             }

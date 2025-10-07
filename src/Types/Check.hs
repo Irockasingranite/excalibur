@@ -14,8 +14,6 @@
 module Types.Check where
 
 import Data.Aeson
-import Data.Aeson.KeyMap as KM
-import Data.Text (Text)
 import Data.Yaml as Yaml
 import Optics.TH
 
@@ -25,51 +23,25 @@ import Types.Check.CommandCheck
 -- A check to be performed.
 data Check
     = CheckCommandCheck CommandCheck
-    deriving (Show)
 
+instance Show Check where
+    show check = case check of
+        CheckCommandCheck c -> show c.name
+
+-- Parse into a specific check variant. Currently trivial.
 instance FromJSON Check where
-    parseJSON =
-        withObject
-            "Check"
-            $ \o -> do
-                mBuiltin <- o .:? "builtin" :: Parser (Maybe String)
-                case mBuiltin of
-                    Nothing -> CheckCommandCheck <$> parseJSON (Object o)
-                    _ -> fail "Unknown builtin check"
+    parseJSON v = CheckCommandCheck <$> (parseJSON v :: Parser CommandCheck)
 
 instance ToJSON Check where
     toJSON c = case c of
         CheckCommandCheck cc -> toJSON cc
 
--- A check with an attached name.
-data NamedCheck
-    = NamedCheck
-    { name :: Text
-    , inner :: Check
-    }
-    deriving (Show)
-
-instance FromJSON NamedCheck where
-    parseJSON =
-        withObject "NamedCheck" $ \v -> do
-            name <- v .: "name"
-            check <- parseJSON (Object v)
-            return $ NamedCheck name check
-
-instance ToJSON NamedCheck where
-    toJSON nc =
-        let oCheck = toJSON nc.inner
-            outer = KM.fromList ["name" .= nc.name]
-         in case oCheck of
-                Object check -> Object (outer `union` check)
-                _ -> error "Invalid check encoding"
-
 -- Implements SPEC-1 @relation(SPEC-1, scope=range_start)
 -- A complete check configuration.
 data CheckConfiguration
     = CheckConfiguration
-    { globalChecks :: [NamedCheck]
-    , perCommitChecks :: [NamedCheck]
+    { globalChecks :: [Check]
+    , perCommitChecks :: [Check]
     }
     deriving (Show)
 

@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoFieldSelectors #-}
 
 module Types.Check.CommandCheck where
 
@@ -32,7 +33,8 @@ formatExitCode e = case e of
 -- Implements REQ-6. @relation(REQ-6, scope=range_start)
 data CommandCheck
     = CommandCheck
-    { command :: Command
+    { name :: Text
+    , command :: Command
     , expectedExit :: ExitCode
     }
     deriving (Show)
@@ -42,16 +44,18 @@ data CommandCheck
 -- Implements SPEC-5 @relation(SPEC-5, scope=range_start)
 instance FromJSON CommandCheck where
     parseJSON = withObject "CommandCheck" $ \v -> do
+        name <- v .: "name"
         cmd <- v .: "command"
         exit <- parseExitCode =<< (v .: "expected_exit")
-        return $ CommandCheck cmd exit
+        return $ CommandCheck name cmd exit
 
 -- @relation(SPEC-5, scope=range_end)
 
 instance ToJSON CommandCheck where
     toJSON c =
         object
-            [ "command" .= c.command
+            [ "name" .= c.name
+            , "command" .= c.command
             , "expected_exit" .= formatExitCode c.expectedExit
             ]
 
