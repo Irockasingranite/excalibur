@@ -16,19 +16,19 @@ performChecks :: CheckConfiguration -> IO [CheckResult]
 performChecks config = do
     inTempCopy "excalibur" $ \dir -> do
         putStrLn $ "Running checks in " ++ dir
-        performGlobalChecks $ config ^. globalChecks
+        performGlobalChecks dir (config ^. globalChecks)
 
-performGlobalChecks :: [Check] -> IO [CheckResult]
-performGlobalChecks checks = do
+performGlobalChecks :: FilePath -> [Check] -> IO [CheckResult]
+performGlobalChecks wd checks = do
     forM checks $ \c -> do
         putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
-        performCheck c
+        performCheck wd c
 
-performCheck :: Check -> IO CheckResult
-performCheck c = do
+performCheck :: FilePath -> Check -> IO CheckResult
+performCheck wd c = do
     let cmd = c ^. checkCommand & T.unpack
         expected = c ^. checkExpectedExit
-    (exit, out, err) <- readProcess (shell cmd)
+    (exit, out, err) <- readProcess (setWorkingDir wd $ shell cmd)
     let result =
             if exit == expected
                 then CheckResultPassed

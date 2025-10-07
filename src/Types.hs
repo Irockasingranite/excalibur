@@ -51,7 +51,7 @@ instance ToJSON Check where
     toJSON c =
         object
             [ "name" .= (c ^. checkName)
-            , "command" .= (c ^. checkName)
+            , "command" .= (c ^. checkCommand)
             , "expected_exit" .= printExitCode (c ^. checkExpectedExit)
             ]
 
