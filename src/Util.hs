@@ -20,7 +20,7 @@ copyTree src dst = do
                 let s = src </> name
                     d = dst </> name
                 isSubDir <- doesDirectoryExist s
-                isFile <- doesDirectoryExist s
+                isFile <- doesFileExist s
                 if isSubDir
                     then copyTree s d
                     else when isFile (copyFile s d)
