@@ -101,7 +101,7 @@ TITLE: Commit Range Option
 STATEMENT: >>>
 The commit range to be checked must be selectable using the ``--commit-range [RANGE]`` or the ``-r
 [RANGE]`` command line option, where ``RANGE`` is a valid commit range as understood by git.
-If the option is unset, a default value of ``HEAD`` shall be used, checking the latest commit only.
+If the option is unset, a default value of ``HEAD~1..HEAD`` shall be used, checking the latest commit only.
 <<<
 RELATIONS:
 - TYPE: Parent

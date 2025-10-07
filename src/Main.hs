@@ -38,7 +38,7 @@ parseOptions =
                 <> short 'r'
                 <> help "Commit range to check"
                 <> metavar "COMMITS"
-                <> value "HEAD"
+                <> value "HEAD~1..HEAD"
                 <> showDefault
             )
         -- @relation(SPEC-3, scope=range_end)
