@@ -3,7 +3,7 @@ global:
     command: test -f excalibur.cabal
     expected_exit: 0
   - name: The Global Check
-    command: ls .
+    command: ls -a .
     expected_exit: 0
 
 per_commit:

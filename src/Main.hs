@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import Control.Monad
@@ -10,16 +12,18 @@ import Data.DList as DL
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
 import Lens.Micro.Platform
+import System.Environment
 import System.Process.Typed
 
 import Types
 import Util
 
-performChecks :: CheckConfiguration -> StateT Report IO ()
-performChecks config = do
-    inTempCopy "excalibur" $ \dir -> do
+performChecks :: CheckConfiguration -> FilePath -> [Commit] -> StateT Report IO ()
+performChecks config repo commits = do
+    inTempCopy repo "excalibur" $ \dir -> do
         liftIO $ putStrLn $ "Running checks in " ++ dir
         performGlobalChecks dir (config ^. globalChecks)
+        forM_ commits $ \c -> performPerCommitChecks c dir (config ^. perCommitChecks)
 
 performGlobalChecks :: FilePath -> [Check] -> StateT Report IO ()
 performGlobalChecks wd checks = do
@@ -27,6 +31,20 @@ performGlobalChecks wd checks = do
         liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
         result <- liftIO $ performCheck wd c
         globalCheckResults %= flip snoc result
+
+performPerCommitChecks :: Commit -> FilePath -> [Check] -> StateT Report IO ()
+performPerCommitChecks hash wd checks = do
+    liftIO $ putStrLn $ "Checking commit " ++ T.unpack hash
+    results <- forM checks $ \c -> do
+        liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
+        liftIO $ performCheckOnCommit hash wd c
+    let commitResult = CommitReport hash (DL.fromList results)
+    perCommitCheckResults %= flip snoc commitResult
+
+performCheckOnCommit :: Commit -> FilePath -> Check -> IO CheckResult
+performCheckOnCommit hash wd check = do
+    checkoutCommit wd hash
+    performCheck wd check
 
 performCheck :: FilePath -> Check -> IO CheckResult
 performCheck wd c = do
@@ -47,11 +65,13 @@ performCheck wd c = do
 
 main :: IO ()
 main = do
+    [repoDir] <- getArgs
+    let commits = ["main"]
     configFile <- readFile "config.yaml"
     let eConfig = Yaml.decodeEither' (BS.pack configFile)
     case eConfig of
         Left e -> print e
         Right config -> do
-            ((), results) <- runStateT (performChecks config) mempty
+            ((), results) <- runStateT (performChecks config repoDir commits) mempty
             let encoded = Json.encodePretty' checkResultPrettyConfig results & LBS.unpack
             writeFile "results.json" encoded

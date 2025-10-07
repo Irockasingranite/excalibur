@@ -120,11 +120,11 @@ instance FromJSON CheckConfiguration where
                 , _perCommitChecks = perCommit
                 }
 
-type CommitHash = Text
+type Commit = Text
 
 data CommitReport
     = CommitReport
-    { _commitHash :: CommitHash
+    { _commitHash :: Commit
     , _commitResults :: DList CheckResult
     }
 
