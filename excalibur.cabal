@@ -20,10 +20,12 @@ executable excalibur
   main-is:             Main.hs
   other-modules:       Checks,
                        Checks.GlobalCheck,
+                       Checks.FileCheck,
                        Types,
                        Types.Base,
                        Types.Check,
                        Types.Check.GlobalCheck,
+                       Types.Check.FileCheck,
                        Types.CheckReport,
                        Util,
                        Util.ResolveCommitRange,

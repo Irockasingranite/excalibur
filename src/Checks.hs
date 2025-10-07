@@ -12,6 +12,7 @@ import qualified Data.DList as DL
 import qualified Data.Text as T
 import System.Process.Typed
 
+import Checks.FileCheck
 import Checks.GlobalCheck
 import Types
 import Util
@@ -24,14 +25,14 @@ runChecks config repo commits = do
 
         -- Global checks run only on final repository state
         let finalCommit = getFinal commits
-            repoContext = CheckContext tmpDir finalCommit
+            repoContext = CheckContext tmpDir finalCommit commits
             repoChecks = config.repoChecks
         liftIO $ checkoutCommit repo finalCommit
         globalReports <- runReaderT (runChecksInContext repoChecks) repoContext
 
         -- Per-Commit checks run on each commit in the range
         commitReports <- forMDList commits $ \c -> do
-            let context = CheckContext tmpDir c
+            let context = CheckContext tmpDir c [c]
             let checks = config.commitChecks
             liftIO $ checkoutCommit tmpDir c
             liftIO $ putStrLn $ "Checking commit " ++ T.unpack c
@@ -62,6 +63,7 @@ runCheck :: Check -> ReaderT CheckContext IO CheckReport
 runCheck check = do
     case check of
         CheckGlobalCheck c -> runGlobalCheck c
+        CheckFileCheck c -> runFileCheck c
 
 -- Checks out a specific commit in a directory
 checkoutCommit :: FilePath -> Commit -> IO ()

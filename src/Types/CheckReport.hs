@@ -83,7 +83,7 @@ makeFieldLabelsNoPrefix ''CheckReport
 instance Show CheckReport where
     show r =
         "Check "
-            ++ show r.check
+            ++ showName r.check
             ++ " on "
             ++ T.unpack r.commit
             ++ ": "

@@ -13,11 +13,13 @@
 
 module Types.Check where
 
+import Control.Applicative
 import Data.Aeson
 import Data.Yaml as Yaml
 import Optics.TH
 
 import Types.Base
+import Types.Check.FileCheck
 import Types.Check.GlobalCheck
 
 -- Implements SPEC-1 @relation(SPEC-1, scope=file)
@@ -25,18 +27,25 @@ import Types.Check.GlobalCheck
 -- A check to be performed.
 data Check
     = CheckGlobalCheck GlobalCheck
+    | CheckFileCheck FileCheck
+    deriving (Show)
 
-instance Show Check where
-    show check = case check of
-        CheckGlobalCheck c -> show c.name
+instance Named Check where
+    showName check = case check of
+        CheckGlobalCheck c -> showName c
+        CheckFileCheck c -> showName c
 
--- Parse into a specific check variant. Currently trivial.
+-- Parse into a specific check variant. Try parsing into a FileCheck first. If that fails, try as a
+-- global check.
 instance FromJSON Check where
-    parseJSON v = CheckGlobalCheck <$> (parseJSON v :: Parser GlobalCheck)
+    parseJSON v =
+        (CheckFileCheck <$> (parseJSON v :: Parser FileCheck))
+            <|> (CheckGlobalCheck <$> (parseJSON v :: Parser GlobalCheck))
 
 instance ToJSON Check where
     toJSON c = case c of
         CheckGlobalCheck cc -> toJSON cc
+        CheckFileCheck cc -> toJSON cc
 
 -- A complete check configuration.
 data CheckConfiguration
@@ -57,6 +66,7 @@ data CheckContext
     = CheckContext
     { directory :: FilePath
     , commit :: Commit
+    , commitRange :: [Commit]
     }
 
 makeFieldLabelsNoPrefix ''CheckContext

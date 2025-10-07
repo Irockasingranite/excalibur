@@ -3,8 +3,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
-module Types.Check.GlobalCheck (
-    GlobalCheck (..),
+module Types.Check.FileCheck (
+    FileCheck (..),
 ) where
 
 import Data.Aeson
@@ -15,29 +15,35 @@ import Types.Base
 
 -- Implements SPEC-1 @relation(SPEC-1, scope=file)
 
--- A Check based command to be run on the entire repository.
-data GlobalCheck
-    = GlobalCheck
+-- A Check based to be run on a set of files.
+data FileCheck
+    = FileCheck
     { name :: Text
     , command :: Command
     , expectedExit :: ExitCode
+    , filePatterns :: [Text]
+    , changedOnly :: Bool
     }
     deriving (Show)
 
-instance Named GlobalCheck where
+instance Named FileCheck where
     showName c = show c.name
 
-instance FromJSON GlobalCheck where
-    parseJSON = withObject "GlobalCheck" $ \v -> do
+instance FromJSON FileCheck where
+    parseJSON = withObject "FileCheck" $ \v -> do
         name <- v .: "name"
         cmd <- v .: "command"
         exit <- parseExitCode =<< (v .: "expected-exit")
-        return $ GlobalCheck name cmd exit
+        filePatterns <- v .: "files"
+        changedOnly <- v .:? "changed-only" .!= False
+        return $ FileCheck name cmd exit filePatterns changedOnly
 
-instance ToJSON GlobalCheck where
+instance ToJSON FileCheck where
     toJSON c =
         object
             [ "name" .= c.name
             , "command" .= c.command
             , "expected-exit" .= formatExitCode c.expectedExit
+            , "files" .= c.filePatterns
+            , "changed-only" .= c.changedOnly
             ]

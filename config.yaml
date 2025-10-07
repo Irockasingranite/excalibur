@@ -1,15 +1,15 @@
-global:
+on-repository:
   - name: Cabal File Exists
     command: test -f excalibur.cabal
-    expected_exit: 0
-  - name: The Global Check
+    expected-exit: 0
+  - name: This should always pass
     command: ls -a .
-    expected_exit: 0
+    expected-exit: 0
 
-per_commit:
-  - name: The failing local check
-    command: test -f not_a_file
-    expected_exit: 0
-  # - name: The format check
-  #   builtin: clang-format
-  #   style_file: .clang-format
+on-commit:
+  - name: Check formatting
+    command: clang-format --dry-run -Werror
+    expected-exit: 0
+    files:
+      - "**/**.c"
+      - "**/**.h"

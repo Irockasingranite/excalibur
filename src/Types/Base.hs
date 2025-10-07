@@ -1,6 +1,7 @@
 module Types.Base (
     Command,
     Commit,
+    Named (..),
     formatExitCode,
     parseExitCode,
 ) where
@@ -26,3 +27,6 @@ formatExitCode :: ExitCode -> String
 formatExitCode e = case e of
     ExitSuccess -> "0"
     ExitFailure n -> show n
+
+class Named a where
+    showName :: a -> String
