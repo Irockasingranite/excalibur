@@ -27,12 +27,15 @@ executable excalibur
                        aeson-pretty,
                        bytestring,
                        directory,
+                       dlist,
                        exceptions,
                        filepath,
                        microlens-platform,
+                       mtl,
                        scientific,
                        temporary,
                        text,
+                       transformers,
                        typed-process,
                        yaml
   ghc-options:         -Wall

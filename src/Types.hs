@@ -5,6 +5,7 @@ module Types where
 
 import Data.Aeson
 import Data.Aeson.Encode.Pretty as Pretty
+import Data.DList
 import Data.Scientific
 import Data.Text (Text)
 import Data.Yaml
@@ -118,3 +119,53 @@ instance FromJSON CheckConfiguration where
                 { _globalChecks = global
                 , _perCommitChecks = perCommit
                 }
+
+type CommitHash = Text
+
+data CommitReport
+    = CommitReport
+    { _commitHash :: CommitHash
+    , _commitResults :: DList CheckResult
+    }
+
+makeLenses ''CommitReport
+
+instance ToJSON CommitReport where
+    toJSON c =
+        object
+            [ "commit" .= (c ^. commitHash)
+            , "results" .= (c ^. commitResults)
+            ]
+
+data Report
+    = Report
+    { _globalCheckResults :: DList CheckResult
+    , _perCommitCheckResults :: DList CommitReport
+    }
+
+makeLenses ''Report
+
+instance Semigroup Report where
+    r1 <> r2 =
+        Report
+            (r1 ^. globalCheckResults <> r2 ^. globalCheckResults)
+            (r1 ^. perCommitCheckResults <> r2 ^. perCommitCheckResults)
+
+instance Monoid Report where
+    mempty = Report mempty mempty
+
+instance ToJSON Report where
+    toJSON r =
+        object
+            [ "global" .= (r ^. globalCheckResults)
+            , "per_commit" .= (r ^. perCommitCheckResults)
+            ]
+
+reportPrettyConfig :: Pretty.Config
+reportPrettyConfig =
+    Pretty.Config
+        { confIndent = Spaces 4
+        , confCompare = checkResultKeyCmp
+        , confNumFormat = Pretty.Generic
+        , confTrailingNewline = False
+        }
