@@ -26,7 +26,7 @@ performChecks config repo commits = do
     getFinal [c] = c
     getFinal (_ : cs) = getFinal cs
 
-performGlobalChecks :: FilePath -> Commit -> [Check] -> StateT Report IO ()
+performGlobalChecks :: FilePath -> Commit -> [NamedCheck] -> StateT Report IO ()
 performGlobalChecks wd commit checks = do
     forM_ checks $ \c -> do
         liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
@@ -34,7 +34,7 @@ performGlobalChecks wd commit checks = do
         liftIO $ putStrLn (formatCheckResult result)
         globalCheckResults %= flip DL.snoc result
 
-performPerCommitChecks :: FilePath -> Commit -> [Check] -> StateT Report IO ()
+performPerCommitChecks :: FilePath -> Commit -> [NamedCheck] -> StateT Report IO ()
 performPerCommitChecks wd commit checks = do
     liftIO $ putStrLn $ "Checking commit " ++ T.unpack commit
     results <- forM checks $ \c -> do
@@ -45,15 +45,15 @@ performPerCommitChecks wd commit checks = do
 
     perCommitCheckResults %= DL.append (DL.fromList results)
 
-performCheckOnCommit :: Commit -> FilePath -> Check -> IO CheckResult
+performCheckOnCommit :: Commit -> FilePath -> NamedCheck -> IO CheckResult
 performCheckOnCommit commit wd check = do
     checkoutCommit wd commit
     performCheck wd commit check
 
-performCheck :: FilePath -> Commit -> Check -> IO CheckResult
+performCheck :: FilePath -> Commit -> NamedCheck -> IO CheckResult
 performCheck wd commit check = do
-    let cmd = check ^. checkCommand & T.unpack
-        expected = check ^. checkExpectedExit
+    let cmd = check ^. checkInner . checkCommand & T.unpack
+        expected = check ^. checkInner . checkExpectedExit
     (exit, out) <- readProcessInterleaved (setWorkingDir wd $ shell cmd)
     let result =
             if exit == expected

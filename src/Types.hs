@@ -17,14 +17,22 @@ type Command = Text
 type Commit = Text
 
 data Check
-    = Check
-    { _checkName :: Text
-    , _checkCommand :: Command
+    = CommandCheck
+    { _checkCommand :: Command
     , _checkExpectedExit :: ExitCode
     }
     deriving (Show)
 
 makeLenses ''Check
+
+data NamedCheck
+    = NamedCheck
+    { _checkName :: Text
+    , _checkInner :: Check
+    }
+    deriving (Show)
+
+makeLenses ''NamedCheck
 
 parseExitCode :: Value -> Yaml.Parser ExitCode
 parseExitCode (Number n) = case toBoundedInteger n of
@@ -38,24 +46,20 @@ printExitCode e = case e of
     ExitSuccess -> "0"
     ExitFailure n -> show n
 
-instance FromJSON Check where
+instance FromJSON NamedCheck where
     parseJSON = withObject "Check" $ \v -> do
         name <- v .: "name"
         cmd <- v .: "command"
         exit <- (v .: "expected_exit") >>= parseExitCode
-        return $
-            Check
-                { _checkName = name
-                , _checkCommand = cmd
-                , _checkExpectedExit = exit
-                }
+        let check = CommandCheck cmd exit
+        return $ NamedCheck name check
 
-instance ToJSON Check where
+instance ToJSON NamedCheck where
     toJSON c =
         object
             [ "name" .= (c ^. checkName)
-            , "command" .= (c ^. checkCommand)
-            , "expected_exit" .= printExitCode (c ^. checkExpectedExit)
+            , "command" .= (c ^. checkInner . checkCommand)
+            , "expected_exit" .= printExitCode (c ^. checkInner . checkExpectedExit)
             ]
 
 checkKeyCmp :: Text -> Text -> Ordering
@@ -77,7 +81,7 @@ instance ToJSON CheckResultType where
 
 data CheckResult
     = CheckResult
-    { _resultCheck :: Check
+    { _resultCheck :: NamedCheck
     , _resultType :: CheckResultType
     , _resultOutput :: Text
     , _checkedCommit :: Commit
@@ -109,8 +113,8 @@ checkResultPrettyConfig =
 
 data CheckConfiguration
     = CheckConfiguration
-    { _globalChecks :: [Check]
-    , _perCommitChecks :: [Check]
+    { _globalChecks :: [NamedCheck]
+    , _perCommitChecks :: [NamedCheck]
     }
     deriving (Show)
 
