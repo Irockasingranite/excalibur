@@ -28,12 +28,12 @@ performChecks config repo commits = do
         -- Global checks run only on final repository state
         let finalCommit = getFinal commits
             globalContext = CheckContext repo finalCommit
-            globalChecks_ = config.globalChecks
+            globalChecks = config.globalChecks
         liftIO $ checkoutCommit repo finalCommit
-        globalReports_ <- runReaderT (performChecksInContext globalChecks_) globalContext
+        globalReports <- runReaderT (performChecksInContext globalChecks) globalContext
 
         -- Per-Commit checks run on each commit in the range
-        perCommitReports_ <- forMDList commits $ \c -> do
+        perCommitReports <- forMDList commits $ \c -> do
             let context = CheckContext repo c
             let checks = config.perCommitChecks
             liftIO $ checkoutCommit repo c
@@ -41,10 +41,10 @@ performChecks config repo commits = do
             runReaderT (performChecksInContext checks) context
 
         -- Flatten nested DLists of reports into a single DList
-        let allPerCommitReports = (DL.concat . DL.toList) perCommitReports_
+        let allPerCommitReports = (DL.concat . DL.toList) perCommitReports
         return $
             Report
-                { globalReports = globalReports_
+                { globalReports = globalReports
                 , perCommitReports = allPerCommitReports
                 }
   where
@@ -62,7 +62,7 @@ performChecksInContext checks = do
 
 -- Runs a single check in a context. Can read the context to fill out report details as needed.
 performCheck :: NamedCheck -> ReaderT CheckContext IO CheckReport
-performCheck check_ = do
-    let name_ = check_.name
-    case check_.inner of
-        CheckCommandCheck c -> performCommandCheck name_ c
+performCheck check = do
+    let name = check.name
+    case check.inner of
+        CheckCommandCheck c -> performCommandCheck name c

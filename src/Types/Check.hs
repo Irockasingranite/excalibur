@@ -9,6 +9,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE NoFieldSelectors #-}
 
 module Types.Check where
 
@@ -51,9 +52,9 @@ data NamedCheck
 instance FromJSON NamedCheck where
     parseJSON =
         withObject "NamedCheck" $ \v -> do
-            name_ <- v .: "name"
+            name <- v .: "name"
             check <- parseJSON (Object v)
-            return $ NamedCheck name_ check
+            return $ NamedCheck name check
 
 instance ToJSON NamedCheck where
     toJSON nc =

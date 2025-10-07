@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoFieldSelectors #-}
 
 module Main (main) where
 
@@ -81,9 +82,9 @@ main = do
     options <- execParser opts
 
     let repoDir = options.repository
-        configFile_ = options.configFile
+        configFile = options.configFile
         commitRange = options.commits
-        outputFile_ = options.outputFile
+        outputFile = options.outputFile
 
     mCommits <- resolveCommitRange repoDir (T.unpack commitRange)
 
@@ -91,18 +92,18 @@ main = do
         putStrLn $ "Failed to resolve commit range " ++ T.unpack commitRange
         exitFailure
 
-    let commits_ = fromMaybe [] mCommits
+    let commits = fromMaybe [] mCommits
 
-    configContents <- readFile configFile_
+    configContents <- readFile configFile
     let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
     print eConfig
 
     case eConfig of
         Left e -> print e
         Right config -> do
-            report <- performChecks config repoDir commits_
+            report <- performChecks config repoDir commits
             putStrLn $ replicate 40 '-'
 
             putStrLn $ summarizeReport report
             let encoded = JSON.encodePretty report & LBS.unpack
-            writeFile outputFile_ encoded
+            writeFile outputFile encoded
