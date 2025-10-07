@@ -1,3 +1,5 @@
+# This is an example configuration used for testing. It does not contain checks that this repository
+# should pass.
 on-repository:
   - name: Cabal File Exists
     command: test -f excalibur.cabal

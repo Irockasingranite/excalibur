@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: Excalibur Requirements
+TITLE: Excalibur
 
 [GRAMMAR]
 IMPORT_FROM_FILE: grammar.sgra
@@ -89,6 +89,7 @@ TITLE: Check Configuration File Option
 STATEMENT: >>>
 The check configuration file must be selectable via the command line option ``--config [FILE]`` or
 ``-c [FILE]``
+If the option is unset, a default value of ``./excalibur.yaml`` shall be used.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -99,11 +100,24 @@ UID: SPEC-3
 TITLE: Commit Range Option
 STATEMENT: >>>
 The commit range to be checked must be selectable using the ``--commit-range [RANGE]`` or the ``-r
-[RANGE] command line option, where ``RANGE`` is a valid commit range as understood by git.
+[RANGE]`` command line option, where ``RANGE`` is a valid commit range as understood by git.
+If the option is unset, a default value of ``HEAD`` shall be used, checking the latest commit only.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-2
+
+[SPECIFICATION]
+UID: SPEC-9
+TITLE: Report Location Option
+STATEMENT: >>>
+The location of the generated report file shall be selectable using the ``--output [FILE]`` or the ``-o [FILE]`` command line options, where ``[FILE]`` is the desired output path.
+
+If the option is unset, a default value of ``./report.json`` shall be used.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-7
 
 [[/SECTION]]
 

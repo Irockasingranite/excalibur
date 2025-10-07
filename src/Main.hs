@@ -15,6 +15,7 @@ import qualified Data.Yaml as Yaml
 import Optics
 import Options.Applicative as O
 import System.Exit
+import System.IO
 
 import Checks
 import Types
@@ -48,19 +49,22 @@ parseOptions =
                 <> short 'c'
                 <> help "Check configuration file"
                 <> metavar "CONFIG"
-                <> value "config.yaml"
+                <> value "./excalibur.yaml"
                 <> showDefault
             )
         -- @relation(SPEC-2, scope=range_end)
 
+        -- Implements SPEC-9 @relation(SPEC-9, scope=range_start)
         <*> strOption
             ( long "output"
                 <> short 'o'
                 <> help "Output file"
                 <> metavar "OUTPUT"
-                <> value "results.json"
+                <> value "report.json"
                 <> showDefault
             )
+        -- @relation(SPEC-9, scope=range_end)
+
         <*> O.argument
             str
             ( metavar "REPOSITORY"
@@ -96,10 +100,10 @@ main = do
 
     configContents <- readFile configFile
     let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
-    print eConfig
 
     case eConfig of
-        Left e -> print e
+        Left e -> do
+            hPutStrLn stderr $ "Invalid configuration file: " ++ show e
         Right config -> do
             report <- runChecks config repoDir commits
             putStrLn $ replicate 40 '-'
