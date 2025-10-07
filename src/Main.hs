@@ -3,17 +3,17 @@
 
 module Main (main) where
 
+import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.State
-import qualified Data.Aeson.Encode.Pretty as Json
+import qualified Data.Aeson.Encode.Pretty as JSON
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
-import Lens.Micro.Platform
-import Options.Applicative
+import Options.Applicative as O
 import System.Exit
 
 import Checks
@@ -57,7 +57,7 @@ parseOptions =
                 <> value "results.json"
                 <> showDefault
             )
-        <*> argument
+        <*> O.argument
             str
             ( metavar "REPOSITORY"
                 <> value "."
@@ -91,12 +91,15 @@ main = do
     let commits = fromMaybe [] mCommits
 
     configContents <- readFile configFile
-    let eConfig = Yaml.decodeEither' (BS.pack configContents)
+    let eConfig = Yaml.decodeEither' (BS.pack configContents) :: Either Yaml.ParseException CheckConfiguration
+    print eConfig
+
     case eConfig of
         Left e -> print e
         Right config -> do
             ((), results) <- runStateT (performChecks config repoDir commits) mempty
             putStrLn $ replicate 40 '-'
-            putStrLn $ formatReport results
-            let encoded = Json.encodePretty' checkResultPrettyConfig results & LBS.unpack
+
+            putStrLn $ summarizeReport results
+            let encoded = JSON.encodePretty results & LBS.unpack
             writeFile outputFile encoded

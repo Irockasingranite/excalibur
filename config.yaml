@@ -7,9 +7,9 @@ global:
     expected_exit: 0
 
 per_commit:
-  - name: The Local Check
-    command: pwd
-    expected_exit: 0
   - name: The failing local check
     command: test -f not_a_file
     expected_exit: 0
+  # - name: The format check
+  #   builtin: clang-format
+  #   style_file: .clang-format

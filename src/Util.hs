@@ -1,18 +1,16 @@
 module Util (
     checkoutCommit,
-    formatCheckResult,
-    formatReport,
+    summarizeReport,
     inTempCopy,
     resolveCommitRange,
 ) where
 
+import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
-import qualified Data.DList as DL
 import qualified Data.Text as T
-import Lens.Micro.Platform
 import System.Directory
 import System.FilePath
 import System.IO.Temp
@@ -73,35 +71,12 @@ resolveCommitRange repo range = do
     listCmd r = "git rev-list " ++ r
     parseOut o = fmap T.pack (reverse . lines $ LBS.unpack o)
 
-formatCheckResult :: CheckResult -> String
-formatCheckResult c = case c ^. resultType of
-    CheckResultPassed -> statusline
-    CheckResultFailed -> unlines [statusline, outputline]
+summarizeReport :: Report -> String
+summarizeReport r = unlines [globalSummary, localSummary]
   where
-    name = c ^. resultCheck . checkName & T.unpack
-    status = show (c ^. resultType)
-    statusline = name ++ ": " ++ status
-    outputline = "Output:\n" ++ T.unpack (c ^. resultOutput)
-
-formatReport :: Report -> String
-formatReport r = unlines [globalSummary, perCommitSummary]
-  where
-    nGlobalChecks = length . DL.toList $ r ^. globalCheckResults
-    globalFailures = r ^. globalCheckResults & DL.toList & filter (\e -> (e ^. resultType) == CheckResultFailed)
-    nGlobalFailures = length globalFailures
-    nGlobalPassed = nGlobalChecks - nGlobalFailures
-    globalSummary = "Global checks: " ++ show nGlobalPassed ++ "/" ++ show nGlobalChecks ++ " passed"
-    allPerCommitChecks = r ^. perCommitCheckResults
-    nPerCommitChecks = length allPerCommitChecks
-    failedPerCommitChecks = reportOnlyFailures r ^. perCommitCheckResults
-    nPerCommitFailures = length failedPerCommitChecks
-    nPerCommitPassed = nPerCommitChecks - nPerCommitFailures
-    perCommitSummary = "Per-commit checks: " ++ show nPerCommitPassed ++ "/" ++ show nPerCommitChecks ++ " passed"
-
-reportOnlyFailures :: Report -> Report
-reportOnlyFailures r =
-    Report globalFiltered perCommitFiltered
-  where
-    isFailure x = (x ^. resultType) == CheckResultFailed
-    globalFiltered = r ^. globalCheckResults ^.. traverse . filtered isFailure & DL.fromList
-    perCommitFiltered = r ^. perCommitCheckResults ^.. traverse . filtered isFailure & DL.fromList
+    globalSummary = show globalPassed ++ "/" ++ show globalTotal ++ " global checks passed"
+    localSummary = show perCommitPassed ++ "/" ++ show perCommitTotal ++ " per-commit checks passed"
+    globalTotal = length $ r ^. globalReports
+    globalPassed = length $ r ^. globalReports ^.. traverse . reportResult . _Success
+    perCommitTotal = length $ r ^. perCommitReports
+    perCommitPassed = length $ r ^. perCommitReports ^.. traverse . reportResult . _Success

@@ -31,14 +31,15 @@ executable excalibur
                        dlist,
                        exceptions,
                        filepath,
-                       microlens-platform,
                        mtl,
+                       lens,
                        optparse-applicative,
                        scientific,
                        temporary,
                        text,
                        transformers,
                        typed-process,
+                       unordered-containers,
                        yaml
   ghc-options:         -Wall
                        -Wcompat
