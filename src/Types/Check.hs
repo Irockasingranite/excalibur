@@ -9,6 +9,7 @@ import Data.Aeson.KeyMap as KM
 import Data.Text (Text)
 import Data.Yaml as Yaml
 
+import Types.Base
 import Types.Check.CommandCheck
 
 -- A check to be performed.
@@ -75,3 +76,12 @@ instance FromJSON CheckConfiguration where
         return $ CheckConfiguration global perCommit
 
 -- @relation(SPEC-1, scope=range_end)
+
+-- Context a check runs in
+data CheckContext
+    = CheckContext
+    { _contextDirectory :: FilePath
+    , _contextCommit :: Commit
+    }
+
+makeLenses ''CheckContext

@@ -1,12 +1,16 @@
 module Util (
     checkoutCommit,
-    summarizeReport,
+    forMDList,
     inTempCopy, -- from Util.TempCopy
     resolveCommitRange,
+    summarizeReport,
 ) where
 
 import Control.Lens
+import Control.Monad
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
+import Data.DList (DList)
+import qualified Data.DList as DL
 import qualified Data.Text as T
 import System.Process.Typed
 import Types
@@ -41,3 +45,14 @@ summarizeReport r = unlines [globalSummary, localSummary]
     globalPassed = length $ r ^. globalReports ^.. traverse . reportResult . _Success
     perCommitTotal = length $ r ^. perCommitReports
     perCommitPassed = length $ r ^. perCommitReports ^.. traverse . reportResult . _Success
+
+-- Helper monad fold. Essentially a forM backed by a DList instead of a List.
+forMDList :: (Monad m) => [a] -> (a -> m b) -> m (DList b)
+forMDList xs f =
+    foldM
+        ( \acc x -> do
+            b <- f x
+            return (DL.snoc acc b)
+        )
+        DL.empty
+        xs
