@@ -62,7 +62,11 @@ checkKeyCmp = keyOrder ["name", "command", "expected_exit"]
 data CheckResultType
     = CheckResultPassed
     | CheckResultFailed
-    deriving (Eq, Show)
+    deriving (Eq)
+
+instance Show CheckResultType where
+    show CheckResultPassed = "Passed"
+    show CheckResultFailed = "Failed"
 
 instance ToJSON CheckResultType where
     toJSON c = case c of

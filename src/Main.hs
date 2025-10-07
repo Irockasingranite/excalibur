@@ -32,6 +32,7 @@ performGlobalChecks wd checks = do
     forM_ checks $ \c -> do
         liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
         result <- liftIO $ performCheck wd c
+        liftIO $ putStrLn (formatCheckResult result)
         globalCheckResults %= flip snoc result
 
 performPerCommitChecks :: Commit -> FilePath -> [Check] -> StateT Report IO ()
@@ -39,7 +40,10 @@ performPerCommitChecks hash wd checks = do
     liftIO $ putStrLn $ "Checking commit " ++ T.unpack hash
     results <- forM checks $ \c -> do
         liftIO $ putStrLn $ "Running check: " ++ (c ^. checkName & T.unpack)
-        liftIO $ performCheckOnCommit hash wd c
+        result <- liftIO $ performCheckOnCommit hash wd c
+        liftIO $ putStrLn (formatCheckResult result)
+        return result
+
     let commitResult = CommitReport hash (DL.fromList results)
     perCommitCheckResults %= flip snoc commitResult
 

@@ -1,5 +1,6 @@
 module Util (
     checkoutCommit,
+    formatCheckResult,
     inTempCopy,
     resolveCommitRange,
 ) where
@@ -9,6 +10,7 @@ import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
 import qualified Data.Text as T
+import Lens.Micro.Platform
 import System.Directory
 import System.FilePath
 import System.IO.Temp
@@ -68,3 +70,14 @@ resolveCommitRange repo range = do
   where
     listCmd r = "git rev-list " ++ r
     parseOut o = fmap T.pack (reverse . lines $ LBS.unpack o)
+
+formatCheckResult :: CheckResult -> String
+formatCheckResult c = case c ^. resultType of
+    CheckResultPassed -> statusline
+    CheckResultFailed -> unlines [statusline, outputline, errorline]
+  where
+    name = c ^. resultCheck . checkName & T.unpack
+    status = show (c ^. resultType)
+    statusline = name ++ ": " ++ status
+    outputline = "Output:\n" ++ T.unpack (c ^. resultOutput)
+    errorline = "Error:\n" ++ T.unpack (c ^. resultError)
