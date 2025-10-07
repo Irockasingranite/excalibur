@@ -37,10 +37,14 @@ instance Show CheckResult where
         Success -> "Success"
         Failure f -> "Failure: " ++ show f
 
+-- @relation(SPEC-7, scope=range_start)
+-- Encodes a check result as JSON. Depending on the result it may contain different fields.
 instance ToJSON CheckResult where
     toJSON r = case r of
         Success -> object ["result" .= String "Success"]
         Failure f -> object ["result" .= String "Failure", "details" .= toJSON f]
+
+-- @relation(SPEC-7, scope=range_end)
 
 data CheckReport
     = CheckReport
@@ -60,6 +64,9 @@ instance Show CheckReport where
             ++ ": "
             ++ show (r ^. reportResult)
 
+-- @relation(SPEC-7, scope=range_start)
+-- Encodes a single check report as JSON. The result itself is encoded separately, and the result is
+-- merged with the additional fields here.
 instance ToJSON CheckReport where
     toJSON r =
         let oResult = toJSON (r ^. reportResult)
@@ -71,6 +78,8 @@ instance ToJSON CheckReport where
          in case oResult of
                 Object result -> Object (outer `union` result)
                 _ -> error "Invalid result encoding"
+
+-- @relation(SPEC-7, scope=range_end)
 
 data Report
     = Report
@@ -86,9 +95,13 @@ instance Semigroup Report where
 instance Monoid Report where
     mempty = Report mempty mempty
 
+-- @relation(SPEC-7, scope=range_start)
+-- Encodes the full report as JSON, grouping the reports by scope.
 instance ToJSON Report where
     toJSON r =
         object
             [ "global" .= (r ^. globalReports)
             , "per_commit" .= (r ^. perCommitReports)
             ]
+
+-- @relation(SPEC-7, scope=range_end)

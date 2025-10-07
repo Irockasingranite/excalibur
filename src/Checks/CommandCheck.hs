@@ -2,6 +2,8 @@ module Checks.CommandCheck (
     performCommandCheck,
 ) where
 
+-- Implements SPEC-5 @relation(SPEC-5, scope=file)
+
 import Control.Lens
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy.Char8 as LBS
