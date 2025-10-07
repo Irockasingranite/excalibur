@@ -15,11 +15,7 @@ import Checks.CommandCheck
 import Types
 import Util
 
--- @relation(SPEC-8, scope=file)
--- @relation(SPEC-9, scope=file)
-
 -- Runs all checks given in a check configuration.
--- Implements SPEC-8 and SPEC-9.
 performChecks :: CheckConfiguration -> FilePath -> [Commit] -> IO Report
 performChecks config repo commits = do
     inTempCopy repo "excalibur" $ \dir -> do

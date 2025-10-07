@@ -61,9 +61,16 @@ Excalibur must generate a report of all check results, detailing success/failure
 
 [REQUIREMENT]
 UID: REQ-6
-TITLE: External Check Commands
+TITLE: Global Check Commands
 STATEMENT: >>>
-It must be possible to run an external command as a check.
+It must be possible to run an external check command within the repository under test.
+<<<
+
+[REQUIREMENT]
+UID: REQ-8
+TITLE: Per-File Checks
+STATEMENT: >>>
+It must be possible to run a check command on a defined subset of files within the repository under test.
 <<<
 
 [[/SECTION]]
@@ -71,25 +78,6 @@ It must be possible to run an external command as a check.
 [[SECTION]]
 UID: SEC-SPECIFICATIONS
 TITLE: Specifications
-
-[SPECIFICATION]
-UID: SPEC-8
-TITLE: Running Global Checks
-STATEMENT: >>>
-Checks that are configured as 'global' shall be run on the final commit of the specified range, or on ``HEAD`` if no range is specified.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-1
-
-[REQUIREMENT]
-UID: SPEC-9
-TITLE: Running Per-Commit Checks
-STATEMENT: >>>
-Checks that are configured as 'per-commit' shall be run as follows:
-   * Each commit in the specified range is checked out in order
-   * For each of these states, every 'per-commit' check is run
-<<<
 
 [[SECTION]]
 UID: SEC-SPEC-CLI-OPTIONS
@@ -119,10 +107,6 @@ RELATIONS:
 
 [[/SECTION]]
 
-[[SECTION]]
-UID: SEC-SPEC-CHECK-CONFIG
-TITLE: Check Configuration
-
 [SPECIFICATION]
 UID: SPEC-1
 TITLE: Check Configuration File Format
@@ -131,38 +115,35 @@ Checks must be defined in a YAML file of the following format:
 
 .. code:: yaml
 
-   global: # A list of checks to be performed on the current repository state
-   per_commit: # A list of checks to be performed on each commit in the specified range
+   on-repository: # A list of checks to be performed on the final repository state
+   on-commit: # A list of checks to be performed on each commit in the specified range
+
+Checks that are listed as 'on-repository' shall be run on the final commit of the specified range, or on HEAD if no range is specified.
+
+Checks that are listed as 'on-commit' shall be run once per commit in the given range, on the respective state after that commit.
+
+Each check listed shall be configured as follows:
+
+.. code:: yaml
+
+   - name: # Name of the check (required)
+     command: # Command to be run
+     expected-exit: # Expected exit code if the check passes
+     files: # Optional: A list of files, see below
+     changed-only: # True/False, see below
+
+
+If the ``files`` key is not set, the check is considered a "global" check, and will be run once in the repository root.
+
+If the ``files`` key is set to a list of file patterns, the check is considered to be "per-file", and the given command will be run for each file in the repository matching any of the given patterns. The given command will be run once for each such file, with the path of the file being passed as a command line argument.
+
+If the ``changed-only`` field is set to ``True``, only files that have changed will be checked. For ``on-repository`` checks, a file is considered to have changed if it was modified by any commit in the given range. For ``on-commit`` checks, a file is considered to have changed if it was modified by that specific commit.
+
+If the exit code of a check command does not match the expected value, the check shall be considered to have failed, otherwise it shall be considered to have passed.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-4
-
-[SPECIFICATION]
-UID: SPEC-5
-TITLE: External Check Commands
-STATEMENT: >>>
-External checks shall be specified as follows:
-
-.. code:: yaml
-
-   - name: The Global Check # Check name
-     command: run_check # The command to be run
-     expected_exit: 0 # Exit code of the command indicating success
-
-Each such check shall consist of:
-   * Running the specified command in the repository root
-   * Comparing the exit code to the expected value
-
-If the expected and actual exit codes do not match, the check shall be considered failed.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-6
-- TYPE: Parent
-  VALUE: SPEC-1
-
-[[/SECTION]]
 
 [SPECIFICATION]
 UID: SPEC-6
@@ -185,10 +166,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: REQ-3
 
-[[SECTION]]
-UID: SEC-SPEC-CHECK-REPORT
-TITLE: Check Report
-
 [SPECIFICATION]
 UID: SPEC-7
 TITLE: Check Report
@@ -198,29 +175,31 @@ The final report detailing all check results shall be in JSON format. It shall h
 .. code:: json
 
    {
-     "global": [
+     "on-repository": [
        {
-         "check": {[check definition]},
+         "check": <check configuration>,
          "result": "Success",
          "commit": "[commit id]"
        }
      ],
-     "per_commit": [
+     "on-commit": [
        {
          "check": {[check definition]},
          "result": "Failure",
          "commit": "[commit id]",
-         "details": {[check specific failure details]}
+         "details": {
+           "expected-exit": 0,
+           "actual-exit": 1,
+           "logs": "[command output]"
+         }
        }
      ]
    }
 
-in which each entry contains the full check definition, and entries for failed checks contain additional information relevant to the check in the ``details`` field.
+in which each entry contains the full check definition, and entries for failed checks contain additional information in the ``details`` field.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-7
-
-[[/SECTION]]
 
 [[/SECTION]]

@@ -30,7 +30,6 @@ formatExitCode e = case e of
 
 -- A Check based on an external command. Success or failure is determined by comparing the command's
 -- exit to an expected value.
--- Implements REQ-6. @relation(REQ-6, scope=range_start)
 data CommandCheck
     = CommandCheck
     { name :: Text
@@ -39,9 +38,7 @@ data CommandCheck
     }
     deriving (Show)
 
--- @relation(REQ-6, scope=range_end)
 
--- Implements SPEC-5 @relation(SPEC-5, scope=range_start)
 instance FromJSON CommandCheck where
     parseJSON = withObject "CommandCheck" $ \v -> do
         name <- v .: "name"
@@ -49,7 +46,6 @@ instance FromJSON CommandCheck where
         exit <- parseExitCode =<< (v .: "expected_exit")
         return $ CommandCheck name cmd exit
 
--- @relation(SPEC-5, scope=range_end)
 
 instance ToJSON CommandCheck where
     toJSON c =
