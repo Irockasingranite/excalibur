@@ -1,0 +1,132 @@
+[DOCUMENT]
+TITLE: Excalibur Requirements
+
+[GRAMMAR]
+IMPORT_FROM_FILE: grammar.sgra
+
+[TEXT]
+TITLE: Mission Statement
+STATEMENT: >>>
+The purpose of Excalibur is the automated checking of software sources for continuous quality
+assurance.
+<<<
+
+[[SECTION]]
+TITLE: Requirements
+
+[REQUIREMENT]
+UID: REQ-1
+TITLE: Running Checks on Repository State
+STATEMENT: >>>
+Excalibur must allow running automated checks on the repository state at a specific point in its
+history.
+<<<
+
+[REQUIREMENT]
+UID: REQ-2
+TITLE: Running Checks on Commit Ranges
+STATEMENT: >>>
+Excalibur must allow running automated checks on the repository at each commit within a specified
+range.
+<<<
+
+[REQUIREMENT]
+UID: REQ-3
+TITLE: Non-Interference with Repository State
+STATEMENT: >>>
+Running checks must not affect the repository state, nor leave foreign artifacts.
+<<<
+
+[REQUIREMENT]
+UID: REQ-4
+TITLE: Check Configuration
+STATEMENT: >>>
+Checks must be configurable via a configuration file that is read by Excalibur.
+<<<
+
+[REQUIREMENT]
+UID: REQ-5
+TITLE: Select Configuration File via Option
+STATEMENT: >>>
+The check configuration file must be selectable via a command line option.
+<<<
+
+[REQUIREMENT]
+UID: REQ-6
+TITLE: External Check Commands
+STATEMENT: >>>
+It must be possible to run an external command as a check.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Specifications
+
+[SPECIFICATION]
+UID: SPEC-1
+TITLE: Check Configuration File Format
+STATEMENT: >>>
+Checks must be defined in a YAML file of the following format:
+
+.. code:: yaml
+
+   global: # A list of checks to be performed on the current repository state
+   per_commit: # A list of checks to be performed on each commit in the specified range
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-4
+
+[SPECIFICATION]
+UID: SPEC-2
+TITLE: Check Configuration File Option
+STATEMENT: >>>
+The check configuration file must be selectable via the command line option ``--config [FILE]`` or
+``-c [FILE]``
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-5
+
+[SPECIFICATION]
+UID: SPEC-3
+TITLE: Commit Range Option
+STATEMENT: >>>
+The commit range to be checked must be selectable using the ``--commit-range [RANGE]`` or the ``-r
+[RANGE] command line option, where ``RANGE`` is a valid commit range as understood by git.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-2
+
+[SPECIFICATION]
+UID: SPEC-4
+TITLE: Perform Checks in Temporary Copy
+STATEMENT: >>>
+All IO operations on the repository under check must be performed in a temporary copy of the
+repository. This copy must be deleted after use.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-3
+
+[SPECIFICATION]
+UID: SPEC-5
+TITLE: External Check Commands
+STATEMENT: >>>
+External checks shall be specified as follows:
+
+.. code:: yaml
+
+   - name: The Global Check # Check name
+     command: run_check # The command to be run
+     expected_exit: 0 # Exit code of the command indicating success
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-6
+- TYPE: Parent
+  VALUE: SPEC-1
+
+[[/SECTION]]

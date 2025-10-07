@@ -33,6 +33,7 @@ makeLenses ''CmdLineOptions
 parseOptions :: Parser CmdLineOptions
 parseOptions =
     CmdLineOptions
+        -- Implements SPEC-3 @relation(SPEC-3, scope=range_start)
         <$> strOption
             ( long "commit-range"
                 <> short 'r'
@@ -41,6 +42,9 @@ parseOptions =
                 <> value "HEAD"
                 <> showDefault
             )
+        -- @relation(SPEC-3, scope=range_end)
+
+        -- Implements SPEC-2 @relation(SPEC-2, scope=range_start)
         <*> strOption
             ( long "config"
                 <> short 'c'
@@ -49,6 +53,8 @@ parseOptions =
                 <> value "config.yaml"
                 <> showDefault
             )
+        -- @relation(SPEC-2, scope=range_end)
+
         <*> strOption
             ( long "output"
                 <> short 'o'

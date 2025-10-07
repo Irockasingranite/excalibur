@@ -17,6 +17,7 @@ import System.IO.Temp
 import System.Process.Typed
 
 import Types
+import System.FilePath.Lens (directory)
 
 copyTree :: FilePath -> FilePath -> IO ()
 copyTree src dst = do
@@ -39,6 +40,9 @@ copyTree src dst = do
                 createDirectoryIfMissing True (takeDirectory dst)
                 copyFile src dst
 
+-- Performs an IO action within a temporary copy of a directory. The copy is removed after the
+-- action has finished.
+-- Implements SPEC-4 @relation(SPEC-4, scope=range_start)
 inTempCopy :: (MonadIO m, MonadMask m) => FilePath -> String -> (FilePath -> m a) -> m a
 inTempCopy dir prefix action = do
     cwd <- liftIO getCurrentDirectory
@@ -55,6 +59,7 @@ inTempCopy dir prefix action = do
                 else liftIO $ copyFile src dst
 
         action tmpDir
+-- @relation(SPEC-4, scope=range_end)
 
 checkoutCommit :: FilePath -> Commit -> IO ()
 checkoutCommit repo hash = do

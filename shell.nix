@@ -6,5 +6,6 @@ pkgs.mkShell {
   packages = with pkgs; [
     haskellPackages.stack
     haskell-language-server
+    strictdoc
   ];
 }

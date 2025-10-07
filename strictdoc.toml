@@ -1,0 +1,17 @@
+[project]
+title = "Excalibur"
+
+features = [
+  "TABLE_SCREEN",
+  "TRACEABILITY_SCREEN",
+  "DEEP_TRACEABILITY_SCREEN",
+  "REQUIREMENT_TO_SOURCE_TRACEABILITY",
+  "PROJECT_STATISTICS_SCREEN",
+  "TRACEABILITY_MATRIX_SCREEN",
+]
+
+source_root_path = "src"
+
+include_doc_paths = [
+  "doc/**"
+]
