@@ -105,9 +105,12 @@ main = do
         Left e -> do
             hPutStrLn stderr $ "Invalid configuration file: " ++ show e
         Right config -> do
+            -- Run checks to generate report
             report <- runChecks config repoDir commits
+            let summary = mkReportSummary report
             putStrLn $ replicate 40 '-'
+            print summary
 
-            putStrLn $ summarizeReport report
+            -- Create report file
             let encoded = JSON.encodePretty report & LBS.unpack
             writeFile outputFile encoded

@@ -124,3 +124,29 @@ instance ToJSON Report where
             [ "on-repository" .= r.repoReports
             , "on-commit" .= r.commitReports
             ]
+
+data ReportSummary
+    = ReportSummary
+    { repoChecksTotal :: Int
+    , repoChecksPassed :: Int
+    , repoChecksFailed :: Int
+    , commitChecksTotal :: Int
+    , commitChecksPassed :: Int
+    , commitChecksFailed :: Int
+    }
+
+makeFieldLabelsNoPrefix ''ReportSummary
+
+instance Show ReportSummary where
+    show s = unlines [repoSummary, commitSummary]
+      where
+        repoSummary =
+            show s.repoChecksPassed
+                ++ "/"
+                ++ show s.repoChecksTotal
+                ++ " repository checks passed"
+        commitSummary =
+            show s.commitChecksPassed
+                ++ "/"
+                ++ show s.commitChecksTotal
+                ++ " commit checks passed"

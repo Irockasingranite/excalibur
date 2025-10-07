@@ -5,7 +5,7 @@ module Util (
     forMDList,
     inTempCopy, -- from Util.TempCopy
     resolveCommitRange, -- from Util.resolveCommitRange
-    summarizeReport,
+    mkReportSummary,
 ) where
 
 import Control.Monad
@@ -14,19 +14,25 @@ import qualified Data.DList as DL
 import Optics
 
 import Types
+
 -- re-exported
 import Util.ResolveCommitRange (resolveCommitRange)
 import Util.TempCopy (inTempCopy)
 
-summarizeReport :: Report -> String
-summarizeReport report = unlines [repoSummary, commitSummary]
-  where
-    repoSummary = show repoPassed ++ "/" ++ show repoTotal ++ " repository checks passed"
-    commitSummary = show commitPassed ++ "/" ++ show commitTotal ++ " commit checks passed"
-    repoTotal = length report.repoReports
-    repoPassed = length $ report ^. #repoReports ^.. traversed % #result % _Success
-    commitTotal = length report.commitReports
-    commitPassed = length $ report ^. #commitReports ^.. traversed % #result % _Success
+mkReportSummary :: Report -> ReportSummary
+mkReportSummary r =
+    let repoTotal = length r.repoReports
+        repoPassed = length $ r ^. #repoReports ^.. traversed % #result % _Success
+        commitTotal = length r.commitReports
+        commitPassed = length $ r ^. #commitReports ^.. traversed % #result % _Success
+     in ReportSummary
+            { repoChecksTotal = repoTotal
+            , repoChecksPassed = repoPassed
+            , repoChecksFailed = repoTotal - repoPassed
+            , commitChecksTotal = commitTotal
+            , commitChecksPassed = commitPassed
+            , commitChecksFailed = commitTotal - commitPassed
+            }
 
 -- Helper monad fold. Essentially a forM backed by a DList instead of a List.
 forMDList :: (Monad m) => [a] -> (a -> m b) -> m (DList b)
