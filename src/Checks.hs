@@ -10,6 +10,7 @@ import Control.Monad.Trans.Reader
 import Data.DList (DList)
 import qualified Data.DList as DL
 import qualified Data.Text as T
+import System.Process.Typed
 
 import Checks.GlobalCheck
 import Types
@@ -61,3 +62,9 @@ runCheck :: Check -> ReaderT CheckContext IO CheckReport
 runCheck check = do
     case check of
         CheckGlobalCheck c -> runGlobalCheck c
+
+-- Checks out a specific commit in a directory
+checkoutCommit :: FilePath -> Commit -> IO ()
+checkoutCommit repo hash = do
+    _ <- readProcess_ $ setWorkingDir repo $ shell ("git checkout " ++ T.unpack hash)
+    return ()

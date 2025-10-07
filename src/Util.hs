@@ -2,42 +2,21 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 
 module Util (
-    checkoutCommit,
     forMDList,
     inTempCopy, -- from Util.TempCopy
-    resolveCommitRange,
+    resolveCommitRange, -- from Util.resolveCommitRange
     summarizeReport,
 ) where
 
 import Control.Monad
-import Data.ByteString.Lazy.Char8 as LBS (unpack)
 import Data.DList (DList)
 import qualified Data.DList as DL
-import qualified Data.Text as T
 import Optics
-import System.Process.Typed
 
 import Types
-import Util.TempCopy (inTempCopy) -- re-exported
-
-checkoutCommit :: FilePath -> Commit -> IO ()
-checkoutCommit repo hash = do
-    _ <- readProcess_ $ setWorkingDir repo $ shell ("git checkout " ++ T.unpack hash)
-    return ()
-
--- Resolves a commit range string into a list of revisions/commit IDs
--- Implements SPEC-6 @relation(SPEC-6, scope=range_start)
-resolveCommitRange :: FilePath -> String -> IO (Maybe [Commit])
-resolveCommitRange repo range = do
-    (exit, out, _err) <- readProcess $ setWorkingDir repo $ shell $ listCmd range
-    case exit of
-        ExitFailure _ -> return Nothing
-        ExitSuccess -> return $ Just (parseOut out)
-  where
-    listCmd r = "git rev-list " ++ r
-    parseOut o = fmap T.pack (reverse . lines $ LBS.unpack o)
-
--- @relation(SPEC-6, scope=range_end)
+-- re-exported
+import Util.ResolveCommitRange (resolveCommitRange)
+import Util.TempCopy (inTempCopy)
 
 summarizeReport :: Report -> String
 summarizeReport report = unlines [repoSummary, commitSummary]

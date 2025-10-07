@@ -26,6 +26,7 @@ executable excalibur
                        Types.Check.GlobalCheck,
                        Types.CheckResult,
                        Util,
+                       Util.ResolveCommitRange,
                        Util.TempCopy
                         
   default-language:    Haskell2010
