@@ -8,7 +8,7 @@ import Data.Aeson.Encode.Pretty as Pretty
 import Data.DList
 import Data.Scientific
 import Data.Text (Text)
-import Data.Yaml
+import Data.Yaml as Yaml
 import Lens.Micro.Platform (makeLenses, (^.))
 import System.Exit
 
@@ -24,7 +24,7 @@ data Check
 
 makeLenses ''Check
 
-parseExitCode :: Value -> Parser ExitCode
+parseExitCode :: Value -> Yaml.Parser ExitCode
 parseExitCode (Number n) = case toBoundedInteger n of
     Just 0 -> return ExitSuccess
     Just nn -> return $ ExitFailure nn
@@ -124,7 +124,7 @@ type Commit = Text
 
 data CommitReport
     = CommitReport
-    { _commitHash :: Commit
+    { _commitId :: Commit
     , _commitResults :: DList CheckResult
     }
 
@@ -133,7 +133,7 @@ makeLenses ''CommitReport
 instance ToJSON CommitReport where
     toJSON c =
         object
-            [ "commit" .= (c ^. commitHash)
+            [ "commit" .= (c ^. commitId)
             , "results" .= (c ^. commitResults)
             ]
 

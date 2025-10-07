@@ -9,10 +9,12 @@ import qualified Data.Aeson.Encode.Pretty as Json
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.DList as DL
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
 import Lens.Micro.Platform
 import System.Environment
+import System.Exit
 import System.Process.Typed
 
 import Types
@@ -65,8 +67,18 @@ performCheck wd c = do
 
 main :: IO ()
 main = do
-    [repoDir] <- getArgs
-    let commits = ["main"]
+    args <- getArgs
+    when (length args < 2) $ do
+        putStrLn "Usage: excalibur <repository> <commits>"
+        exitFailure
+
+    [repoDir, commitArg] <- getArgs
+    mCommits <- resolveCommitRange repoDir commitArg
+    when (isNothing mCommits) $ do
+        putStrLn $ "Failed to resolve commit range " ++ commitArg
+        exitFailure
+
+    let commits = fromMaybe [] mCommits
     configFile <- readFile "config.yaml"
     let eConfig = Yaml.decodeEither' (BS.pack configFile)
     case eConfig of

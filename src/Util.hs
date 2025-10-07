@@ -1,11 +1,13 @@
 module Util (
     checkoutCommit,
     inTempCopy,
+    resolveCommitRange,
 ) where
 
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.IO.Class
+import Data.ByteString.Lazy.Char8 as LBS (unpack)
 import qualified Data.Text as T
 import System.Directory
 import System.FilePath
@@ -56,3 +58,13 @@ checkoutCommit :: FilePath -> Commit -> IO ()
 checkoutCommit repo hash = do
     _ <- readProcess_ $ setWorkingDir repo $ shell ("git checkout " ++ T.unpack hash)
     return ()
+
+resolveCommitRange :: FilePath -> String -> IO (Maybe [Commit])
+resolveCommitRange repo range = do
+    (exit, out, _err) <- readProcess $ setWorkingDir repo $ shell $ listCmd range
+    case exit of
+        ExitFailure _ -> return Nothing
+        ExitSuccess -> return $ Just (parseOut out)
+  where
+    listCmd r = "git rev-list " ++ r
+    parseOut o = fmap T.pack (reverse . lines $ LBS.unpack o)
