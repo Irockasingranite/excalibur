@@ -14,6 +14,8 @@ import System.Exit
 
 type Command = Text
 
+type Commit = Text
+
 data Check
     = Check
     { _checkName :: Text
@@ -78,6 +80,7 @@ data CheckResult
     { _resultCheck :: Check
     , _resultType :: CheckResultType
     , _resultOutput :: Text
+    , _checkedCommit :: Commit
     }
     deriving (Show)
 
@@ -87,12 +90,13 @@ instance ToJSON CheckResult where
     toJSON r =
         object
             [ "check" .= (r ^. resultCheck)
+            , "commit" .= (r ^. checkedCommit)
             , "result" .= (r ^. resultType)
             , "output" .= (r ^. resultOutput)
             ]
 
 checkResultKeyCmp :: Text -> Text -> Ordering
-checkResultKeyCmp = keyOrder ["check", "result", "output", "error"] <> checkKeyCmp
+checkResultKeyCmp = keyOrder ["check", "commit", "result", "output", "error"] <> checkKeyCmp
 
 checkResultPrettyConfig :: Pretty.Config
 checkResultPrettyConfig =
@@ -122,27 +126,10 @@ instance FromJSON CheckConfiguration where
                 , _perCommitChecks = perCommit
                 }
 
-type Commit = Text
-
-data CommitReport
-    = CommitReport
-    { _commitId :: Commit
-    , _commitResults :: DList CheckResult
-    }
-
-makeLenses ''CommitReport
-
-instance ToJSON CommitReport where
-    toJSON c =
-        object
-            [ "commit" .= (c ^. commitId)
-            , "results" .= (c ^. commitResults)
-            ]
-
 data Report
     = Report
     { _globalCheckResults :: DList CheckResult
-    , _perCommitCheckResults :: DList CommitReport
+    , _perCommitCheckResults :: DList CheckResult
     }
 
 makeLenses ''Report

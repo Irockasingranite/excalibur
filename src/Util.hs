@@ -91,10 +91,10 @@ formatReport r = unlines [globalSummary, perCommitSummary]
     nGlobalFailures = length globalFailures
     nGlobalPassed = nGlobalChecks - nGlobalFailures
     globalSummary = "Global checks: " ++ show nGlobalPassed ++ "/" ++ show nGlobalChecks ++ " passed"
-    allPerCommitChecks = r ^. perCommitCheckResults ^.. traverse . commitResults . traverse
+    allPerCommitChecks = r ^. perCommitCheckResults
     nPerCommitChecks = length allPerCommitChecks
     failedPerCommitChecks = reportOnlyFailures r ^. perCommitCheckResults
-    nPerCommitFailures = failedPerCommitChecks ^.. traverse . commitResults . traverse & length
+    nPerCommitFailures = length failedPerCommitChecks
     nPerCommitPassed = nPerCommitChecks - nPerCommitFailures
     perCommitSummary = "Per-commit checks: " ++ show nPerCommitPassed ++ "/" ++ show nPerCommitChecks ++ " passed"
 
@@ -103,10 +103,5 @@ reportOnlyFailures r =
     Report globalFiltered perCommitFiltered
   where
     isFailure x = (x ^. resultType) == CheckResultFailed
-    hasResults x = not $ null (x ^. commitResults)
     globalFiltered = r ^. globalCheckResults ^.. traverse . filtered isFailure & DL.fromList
-    perCommitFailures p =
-        CommitReport
-            (p ^. commitId)
-            (p ^. commitResults ^.. traverse . filtered isFailure & DL.fromList)
-    perCommitFiltered = r ^. perCommitCheckResults & DL.toList & map perCommitFailures & filter hasResults & DL.fromList
+    perCommitFiltered = r ^. perCommitCheckResults ^.. traverse . filtered isFailure & DL.fromList
