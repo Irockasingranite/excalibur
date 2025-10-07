@@ -12,6 +12,7 @@ assurance.
 <<<
 
 [[SECTION]]
+UID: SEC-REQUIREMENTS
 TITLE: Requirements
 
 [REQUIREMENT]
@@ -61,6 +62,7 @@ It must be possible to run an external command as a check.
 [[/SECTION]]
 
 [[SECTION]]
+UID: SEC-SPECIFICATIONS
 TITLE: Specifications
 
 [SPECIFICATION]
@@ -95,6 +97,16 @@ TITLE: Commit Range Option
 STATEMENT: >>>
 The commit range to be checked must be selectable using the ``--commit-range [RANGE]`` or the ``-r
 [RANGE] command line option, where ``RANGE`` is a valid commit range as understood by git.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-2
+
+[SPECIFICATION]
+UID: SPEC-6
+TITLE: Commit Range Resolution
+STATEMENT: >>>
+A given commit range shall be resolved by running ``git rev-list [RANGE]`` within the repository under check, and parsing the output into a list of revisions.
 <<<
 RELATIONS:
 - TYPE: Parent
