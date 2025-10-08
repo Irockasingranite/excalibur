@@ -8,6 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.1.1 - 2025-10-08
+
 - Changed default commit range from `HEAD` to `HEAD~1..HEAD`.
 - Changed return code to failure if any checks failed during the run.
 - Changed config file resolution to be relative to repository under check.
