@@ -1,0 +1,24 @@
+name: checks
+
+on:
+  pull_request:
+    branches: ["main"]
+  push: # DEBUG
+
+jobs:
+
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Stack
+        uses: haskell-actions/setup@v2.8.2
+        with:
+          enable-stack: true
+          stack-no-global: true
+          stack-setup-ghc: true
+      - name: Build
+        run: |
+          stack build
