@@ -1,0 +1,52 @@
+name: 'Setup Stack Cache'
+
+description: 'Sets up caches for use with stack'
+
+inputs:
+  snapshot:
+    description: 'Stackage snapshot to use'
+    required: true
+    default: lts
+
+runs:
+  using: composite
+  steps:
+    - name: Cache GHC
+      uses: actions/cache@v4
+      id: ghc
+      with:
+        path: ~/.stack/programs/*/ghc-*
+        key: CI-ghc-${{ inputs.snapshot }}
+
+    - name: Install GHC using Stack
+      if: steps.ghc.outputs.cache-hit != 'true'
+      shell: bash
+      run: stack setup --install-ghc
+
+    - name: Cache Pantry (Stackage package index)
+      id: pantry
+      uses: actions/cache@v4
+      with:
+        path: ~/.stack/pantry
+        key: CI-pantry-${{ inputs.snapshot }}
+
+    - name: Recompute Stackage package index
+      if: steps.pantry.outputs.cache-hit != 'true'
+      shell: bash
+      run: stack update # populates ~/.stack/pantry
+
+    - name: Cache Haskell Dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.stack/stack.sqlite3
+          ~/.stack/snapshots
+        key: CI-deps-${{ inputs.snapshot }}--${{ hashFiles('*.cabal', 'stack.yaml', 'stack.yaml.lock') }}
+        restore-keys: |
+          CI-deps-${{ inputs.snapshot }}--
+
+    - name: Cache local modules
+      uses: actions/cache@v4
+      with:
+        path: .stack-work
+        key: CI-build-${{ inputs.snapshot }}
