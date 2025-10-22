@@ -9,16 +9,57 @@ jobs:
 
   build:
     runs-on: ubuntu-24.04
+    env:
+      STACK_LTS: lts-23.27
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
       - name: Setup Stack
         uses: haskell-actions/setup@v2.8.2
         with:
           enable-stack: true
           stack-no-global: true
-          stack-setup-ghc: true
+
+      - name: Cache GHC
+        uses: actions/cache@v4
+        id: ghc
+        with:
+          path: ~/.stack/programs/*/ghc-*
+          key: CI-ghc-${{ env.STACK_LTS }}
+
+      - name: Install GHC using Stack
+        if: steps.ghc.outputs.cache-hit != 'true'
+        run: stack setup --install-ghc
+
+      - name: Cache Pantry (Stackage package index)
+        id: pantry
+        uses: actions/cache@v4
+        with:
+          path: ~/.stack/pantry
+          key: CI-pantry-${{ env.STACK_LTS }}
+
+      - name: Recompute Stackage package index
+        if: steps.pantry.outputs.cache-hit != 'true'
+        run: stack update # populates ~/.stack/pantry
+
+      - name: Cache Haskell Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack/stack.sqlite3
+            ~/.stack/snapshots
+          key: CI-deps-${{ env.STACK_LTS }}--${{ hashFiles('excalibur.cabal', 'stack.yaml', 'stack.yaml.lock') }}
+          restore-keys: |
+            CI-deps-${{ env.STACK_LTS }}--
+
+      - name: Cache local modules
+        uses: actions/cache@v4
+        with:
+          path: .stack-work
+          key: CI-build-${{ env.STACK_LTS }}
+
       - name: Build
         run: |
           stack build
