@@ -58,8 +58,8 @@ data CheckConfiguration
 
 instance FromJSON CheckConfiguration where
     parseJSON = withObject "CheckConfiguration" $ \o -> do
-        onRepo <- o .: "on-repository"
-        onCommit <- o .: "on-commit"
+        onRepo <- o .:? "on-repository" .!= []
+        onCommit <- o .:? "on-commit" .!= []
         return $ CheckConfiguration onRepo onCommit
 
 -- Variables to be expanded in commands

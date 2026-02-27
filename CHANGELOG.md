@@ -11,6 +11,7 @@ and this project adheres to the
 - Fixed various issues in the requirements document and added missing specifications for check execution behaviour.
 - Fixed on-repository checks being checked out in the original repository instead of the temporary copy.
 - Fixed check failure report entries having the wrong keys for exit codes and missing the expected exit code.
+- Changed `on-repository` and `on-commit` configuration keys to be optional.
 
 ## 0.1.1 - 2025-10-08
 
