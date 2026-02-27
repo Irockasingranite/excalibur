@@ -35,7 +35,8 @@ data CheckFailure
 instance ToJSON CheckFailure where
     toJSON f =
         object
-            [ "exitcode" .= formatExitCode f.actualExit
+            [ "expected-exit" .= formatExitCode f.expectedExit
+            , "actual-exit" .= formatExitCode f.actualExit
             , "logs" .= f.logs
             ]
 
