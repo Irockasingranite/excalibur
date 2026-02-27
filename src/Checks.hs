@@ -29,7 +29,7 @@ runChecks config vars repo commits = do
         let finalCommit = getFinal commits
             repoContext = CheckContext tmpDir finalCommit commits vars
             repoChecks = config.repoChecks
-        liftIO $ checkoutCommit repo finalCommit
+        liftIO $ checkoutCommit tmpDir finalCommit
         globalReports <- runReaderT (runChecksInContext repoChecks) repoContext
         -- @relation(SPEC-11, scope=range_end)
 

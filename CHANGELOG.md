@@ -9,6 +9,7 @@ and this project adheres to the
 ## Unreleased
 
 - Fixed various issues in the requirements document and added missing specifications for check execution behaviour.
+- Fixed on-repository checks being checked out in the original repository instead of the temporary copy.
 
 ## 0.1.1 - 2025-10-08
 
