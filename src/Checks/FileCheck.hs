@@ -65,9 +65,9 @@ runFileCheck check = do
     -- logs are 2nd tuple member
     let allLogs = results ^.. traversed % _2 & BS.intercalate (BS.pack "\n")
 
-    let result = case aggregateExit of
-            ExitSuccess -> Success
-            ExitFailure _ ->
+    let result = if aggregateExit == check.expectedExit
+            then Success
+            else
                 Failure $
                     CheckFailure
                         { expectedExit = check.expectedExit

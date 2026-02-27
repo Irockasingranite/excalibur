@@ -12,6 +12,7 @@ and this project adheres to the
 - Fixed on-repository checks being checked out in the original repository instead of the temporary copy.
 - Fixed check failure report entries having the wrong keys for exit codes and missing the expected exit code.
 - Changed `on-repository` and `on-commit` configuration keys to be optional.
+- Fixed per-file checks ignoring the configured `expected-exit` code.
 
 ## 0.1.1 - 2025-10-08
 
