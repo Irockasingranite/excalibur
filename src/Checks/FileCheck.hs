@@ -86,11 +86,11 @@ getChangedFiles :: FilePath -> [Commit] -> IO (Maybe [FilePath])
 getChangedFiles repo commits = do
     let (commitFrom, commitTo) = case commits of
             [] -> ("HEAD", "HEAD~1")
-            [c] -> (show c ++ "~1", show c)
-            (c : cs) -> (show c, (show . getFinal) cs)
+            [c] -> (T.unpack c ++ "~1", T.unpack c)
+            (c : cs) -> (T.unpack c, (T.unpack . getFinal) cs)
 
     -- Ask git for list of changed filenames
-    let cmd = "git diff --name-only " ++ show commitFrom ++ " " ++ show commitTo
+    let cmd = "git diff --name-only " ++ commitFrom ++ " " ++ commitTo
     (exit, out) <- liftIO $ runCommandIn repo cmd
 
     case exit of
