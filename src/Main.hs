@@ -108,6 +108,7 @@ main = do
     case eConfig of
         Left e -> do
             hPutStrLn stderr $ "Invalid configuration file: " ++ show e
+            exitFailure
         Right config -> do
             -- Run checks to generate report
             report <- runChecks config vars repoDir commits
