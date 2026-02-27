@@ -15,7 +15,7 @@ import Types
 import Util.ExpandVariables
 import Util.RunCommand
 
--- Implements SPEC-1 @relation(SPEC-1, scope=file)
+-- Implements SPEC-12 @relation(SPEC-12, scope=file)
 
 runGlobalCheck :: GlobalCheck -> ReaderT CheckContext IO CheckReport
 runGlobalCheck check = do

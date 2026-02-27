@@ -21,7 +21,7 @@ import Util.ExpandVariables
 import Util.ResolvePaths
 import Util.RunCommand
 
--- Implements SPEC-1 @relation(SPEC-1, scope=file)
+-- Implements SPEC-13 @relation(SPEC-13, scope=file)
 
 runFileCheck :: FileCheck -> ReaderT CheckContext IO CheckReport
 runFileCheck check = do

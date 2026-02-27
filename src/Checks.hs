@@ -25,19 +25,23 @@ runChecks config vars repo commits = do
         liftIO $ putStrLn $ "Running checks in " ++ tmpDir
 
         -- Global checks run only on final repository state
+        -- Implements SPEC-11 @relation(SPEC-11, scope=range_start)
         let finalCommit = getFinal commits
             repoContext = CheckContext tmpDir finalCommit commits vars
             repoChecks = config.repoChecks
         liftIO $ checkoutCommit repo finalCommit
         globalReports <- runReaderT (runChecksInContext repoChecks) repoContext
+        -- @relation(SPEC-11, scope=range_end)
 
         -- Per-Commit checks run on each commit in the range
+        -- Implements SPEC-14 @relation(SPEC-14, scope=range_start)
         commitReports <- forMDList commits $ \c -> do
             let context = CheckContext tmpDir c [c] vars
             let checks = config.commitChecks
             liftIO $ checkoutCommit tmpDir c
             liftIO $ putStrLn $ "Checking commit " ++ T.unpack c
             runReaderT (runChecksInContext checks) context
+        -- @relation(SPEC-14, scope=range_end)
 
         -- Flatten nested DLists of reports into a single DList
         let allCommitReports = (DL.concat . DL.toList) commitReports
