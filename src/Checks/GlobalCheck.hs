@@ -11,6 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as T
 import Optics
 
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import Types
 import Util.ExpandVariables
 import Util.RunCommand
@@ -25,7 +26,7 @@ runGlobalCheck check = do
     let cmdRaw = check.command
         cmd = T.unpack . expandVariables vars $ cmdRaw
         expected = check.expectedExit
-    (exit, out) <- runCommandWithStderrIn wd cmd
+    (exit, out) <- liftIO $ runCommandWithStderrIn wd cmd
     let result =
             if exit == expected
                 then Success

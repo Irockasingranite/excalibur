@@ -47,7 +47,7 @@ runFileCheck check = do
         let cmdRaw = check.command
             vars' = withFilename file ctx.variables
             cmd = T.unpack . expandVariables vars' $ cmdRaw
-        runCommandWithStderrIn ctx.directory cmd
+        liftIO $ runCommandWithStderrIn ctx.directory cmd
 
     -- Aggregate results:
     -- For Exit codes a single failure fails the whole check
