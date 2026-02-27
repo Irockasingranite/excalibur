@@ -53,17 +53,17 @@ The check configuration file must be selectable via a command line option.
 <<<
 
 [REQUIREMENT]
-UID: REQ-7
-TITLE: Generate Check Report
-STATEMENT: >>>
-Excalibur must generate a report of all check results, detailing success/failure of each check as well as other relevant information such as command logs where applicable.
-<<<
-
-[REQUIREMENT]
 UID: REQ-6
 TITLE: Global Check Commands
 STATEMENT: >>>
 It must be possible to run an external check command within the repository under test.
+<<<
+
+[REQUIREMENT]
+UID: REQ-7
+TITLE: Generate Check Report
+STATEMENT: >>>
+Excalibur must generate a report of all check results, detailing success/failure of each check as well as other relevant information such as command logs where applicable.
 <<<
 
 [REQUIREMENT]
@@ -88,7 +88,7 @@ UID: SPEC-2
 TITLE: Check Configuration File Option
 STATEMENT: >>>
 The check configuration file must be selectable via the command line option ``--config [FILE]`` or
-``-c [FILE]``
+``-c [FILE]``.
 If the option is unset, a default value of ``./excalibur.yaml`` shall be used.
 
 The given path shall be resolved relative to root of the repository under check.
@@ -184,10 +184,40 @@ RELATIONS:
   VALUE: SPEC-1
 
 [SPECIFICATION]
+UID: SPEC-12
+TITLE: Global Check Execution
+STATEMENT: >>>
+For global checks (i.e. checks for which the ``files`` key is not set), the configured command shall be executed exactly once, with the working directory set to the root of the repository under check.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-6
+
+[SPECIFICATION]
 UID: SPEC-6
 TITLE: Commit Range Resolution
 STATEMENT: >>>
 A given commit range shall be resolved by running ``git rev-list [RANGE]`` within the repository under check, and parsing the output into a list of revisions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-2
+
+[SPECIFICATION]
+UID: SPEC-11
+TITLE: On-Repository Check Execution
+STATEMENT: >>>
+On-repository checks shall be executed against the repository state at the final (most recent) commit of the specified commit range. If no commit range is specified, they shall be executed against the HEAD commit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-1
+
+[SPECIFICATION]
+UID: SPEC-14
+TITLE: On-Commit Check Execution
+STATEMENT: >>>
+On-commit checks shall be executed once per commit in the resolved commit range (per SPEC-6), against the repository state at that commit, in order from oldest to most recent.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -206,6 +236,19 @@ Specifically:
 
 Other operators may also be supported.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SPEC-1
+
+[SPECIFICATION]
+UID: SPEC-13
+TITLE: Per-File Check Execution
+STATEMENT: >>>
+For per-file checks (i.e. checks for which the ``files`` key is set), the set of target files shall first be determined by resolving the configured patterns against the repository under check per SPEC-8. The configured command shall then be executed once per matching file, with the working directory set to the root of the repository under check.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-8
 
 [SPECIFICATION]
 UID: SPEC-4
@@ -248,7 +291,7 @@ The final report detailing all check results shall be in JSON format. It shall h
      ]
    }
 
-in which each entry contains the full check definition, and entries for failed checks contain additional information in the ``details`` field.
+in which each entry contains the full check definition, and entries for failed checks contain additional information in the ``details`` field. Entries for successful checks do not contain a ``details`` field.
 <<<
 RELATIONS:
 - TYPE: Parent
