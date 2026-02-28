@@ -31,6 +31,7 @@ data CheckFailure
     , actualExit :: ExitCode
     , logs :: Text
     }
+    deriving (Eq)
 
 instance ToJSON CheckFailure where
     toJSON f =
@@ -54,6 +55,7 @@ instance Show CheckFailure where
 data CheckResult
     = Success
     | Failure CheckFailure
+    deriving (Eq)
 
 makePrisms ''CheckResult
 
@@ -78,6 +80,7 @@ data CheckReport
     , result :: CheckResult
     , commit :: Commit
     }
+    deriving (Eq)
 
 makeFieldLabelsNoPrefix ''CheckReport
 
@@ -109,6 +112,7 @@ data Report
     { repoReports :: DList CheckReport
     , commitReports :: DList CheckReport
     }
+    deriving (Eq, Show)
 
 makeFieldLabelsNoPrefix ''Report
 

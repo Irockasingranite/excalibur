@@ -29,7 +29,7 @@ import Types.Check.GlobalCheck
 data Check
     = CheckGlobalCheck GlobalCheck
     | CheckFileCheck FileCheck
-    deriving (Show)
+    deriving (Eq, Show)
 
 instance Named Check where
     showName check = case check of

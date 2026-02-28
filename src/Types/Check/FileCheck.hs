@@ -24,7 +24,7 @@ data FileCheck
     , filePatterns :: [Text]
     , changedOnly :: Bool
     }
-    deriving (Show)
+    deriving (Eq, Show)
 
 instance Named FileCheck where
     showName c = show c.name

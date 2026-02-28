@@ -22,7 +22,7 @@ data GlobalCheck
     , command :: Command
     , expectedExit :: ExitCode
     }
-    deriving (Show)
+    deriving (Eq, Show)
 
 instance Named GlobalCheck where
     showName c = show c.name
