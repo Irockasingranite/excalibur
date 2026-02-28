@@ -89,14 +89,17 @@ test-suite excalibur-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      tests
   main-is:             Main.hs
-  other-modules:       ExpandVariablesTests,
+  other-modules:       CheckReportTests,
+                       ExpandVariablesTests,
                        ExitCodeTests,
-                       GetFinalTests
+                       GetFinalTests,
+                       ReportSummaryTests
   default-language:    Haskell2010
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5,
                        aeson,
                        bytestring,
+                       dlist,
                        excalibur,
                        scientific,
                        tasty,

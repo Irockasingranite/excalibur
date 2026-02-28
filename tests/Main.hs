@@ -2,9 +2,11 @@ module Main (main) where
 
 import Test.Tasty
 
-import ExpandVariablesTests (expandVariablesTests)
+import CheckReportTests (checkReportTests)
 import ExitCodeTests (exitCodeTests)
+import ExpandVariablesTests (expandVariablesTests)
 import GetFinalTests (getFinalTests)
+import ReportSummaryTests (reportSummaryTests)
 
 main :: IO ()
 main = defaultMain tests
@@ -16,4 +18,4 @@ unitTests :: TestTree
 unitTests =
     testGroup
         "Unit tests"
-        [expandVariablesTests, exitCodeTests, getFinalTests]
+        [checkReportTests, expandVariablesTests, exitCodeTests, getFinalTests, reportSummaryTests]
