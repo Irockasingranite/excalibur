@@ -4,6 +4,7 @@ import Test.Tasty
 
 import ExpandVariablesTests (expandVariablesTests)
 import ExitCodeTests (exitCodeTests)
+import GetFinalTests (getFinalTests)
 
 main :: IO ()
 main = defaultMain tests
@@ -15,4 +16,4 @@ unitTests :: TestTree
 unitTests =
     testGroup
         "Unit tests"
-        [expandVariablesTests, exitCodeTests]
+        [expandVariablesTests, exitCodeTests, getFinalTests]
