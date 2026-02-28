@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Util.ResolveCommitRange (
     resolveCommitRange,
+    getFinal,
 ) where
 
 import Data.ByteString.Lazy.Char8 as LBS (unpack)
@@ -21,3 +24,9 @@ resolveCommitRange repo range = do
         ExitSuccess -> return $ Just (parseOut out)
   where
     parseOut o = fmap T.pack (reverse . lines $ LBS.unpack o)
+
+-- Returns the final commit in a range, falling back to "HEAD" for an empty list.
+getFinal :: [Commit] -> Commit
+getFinal []       = "HEAD"
+getFinal [c]      = c
+getFinal (_ : cs) = getFinal cs

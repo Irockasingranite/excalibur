@@ -50,10 +50,6 @@ runChecks config vars repo commits = do
                 { repoReports = globalReports
                 , commitReports = allCommitReports
                 }
-  where
-    getFinal [] = "HEAD" -- Use HEAD if no range is given
-    getFinal [c] = c -- If one commit is given, use that one
-    getFinal (_ : cs) = getFinal cs -- Recurse range to last one
 
 -- Run a list of checks in a context. Assumes the right commit has been checked out.
 runChecksInContext :: [Check] -> ReaderT CheckContext IO (DList CheckReport)

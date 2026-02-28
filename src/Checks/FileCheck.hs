@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy.Char8 as BS
 import System.Process.Typed
 import Types
 import Util.ExpandVariables
+import Util.ResolveCommitRange (getFinal)
 import Util.ResolvePaths
 import Util.RunCommand
 
@@ -100,8 +101,3 @@ getChangedFiles repo commits = do
             let files = (lines . BS.unpack) out
             -- Add directory to paths, since git doesn't include it
             return $ Just $ fmap (repo </>) files
-  where
-    getFinal :: [Commit] -> Commit
-    getFinal [] = T.pack "HEAD"
-    getFinal [c] = c
-    getFinal (_ : cs) = getFinal cs

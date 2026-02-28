@@ -4,7 +4,8 @@
 module Util (
     forMDList,
     inTempCopy, -- from Util.TempCopy
-    resolveCommitRange, -- from Util.resolveCommitRange
+    resolveCommitRange, -- from Util.ResolveCommitRange
+    getFinal, -- from Util.ResolveCommitRange
     mkReportSummary,
 ) where
 
@@ -16,7 +17,7 @@ import Optics
 import Types
 
 -- re-exported
-import Util.ResolveCommitRange (resolveCommitRange)
+import Util.ResolveCommitRange (getFinal, resolveCommitRange)
 import Util.TempCopy (inTempCopy)
 
 mkReportSummary :: Report -> ReportSummary
