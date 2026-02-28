@@ -14,6 +14,7 @@ and this project adheres to the
 - Changed `on-repository` and `on-commit` configuration keys to be optional.
 - Fixed per-file checks ignoring the configured `expected-exit` code.
 - Fixed invalid configuration file not causing a non-zero exit code.
+- Added unit tests for many non-IO functions.
 
 ## 0.1.1 - 2025-10-08
 
