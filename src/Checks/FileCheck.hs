@@ -12,13 +12,12 @@ import Control.Monad.Trans.Reader
 import Data.List (foldl')
 import qualified Data.Text as T
 import Optics
-import System.FilePath
 
 import qualified Data.ByteString.Lazy.Char8 as BS
 import System.Process.Typed
 import Types
 import Util.ExpandVariables
-import Util.ResolveCommitRange (getFinal)
+import Util.GetChangedFiles
 import Util.ResolvePaths
 import Util.RunCommand
 
@@ -82,22 +81,3 @@ runFileCheck check = do
             , commit = ctx.commit
             , result = result
             }
-
-getChangedFiles :: FilePath -> [Commit] -> IO (Maybe [FilePath])
-getChangedFiles repo commits = do
-    let (commitFrom, commitTo) = case commits of
-            [] -> ("HEAD", "HEAD~1")
-            [c] -> (T.unpack c ++ "~1", T.unpack c)
-            (c : cs) -> (T.unpack c, (T.unpack . getFinal) cs)
-
-    -- Ask git for list of changed filenames
-    let cmd = "git diff --name-only " ++ commitFrom ++ " " ++ commitTo
-    (exit, out) <- liftIO $ runCommandIn repo cmd
-
-    case exit of
-        ExitFailure _ -> return Nothing
-        ExitSuccess -> do
-            -- Output should be \n-separated list of files
-            let files = (lines . BS.unpack) out
-            -- Add directory to paths, since git doesn't include it
-            return $ Just $ fmap (repo </>) files
