@@ -48,6 +48,16 @@
             };
           };
 
+          haskellProjects.static = {
+            basePackages = pkgs.pkgsStatic.haskellPackages;
+
+            settings.excalibur = {
+              cabalFlags.no-integration-tests = true;
+            };
+
+            devShell.enable = false;
+          };
+
           # haskell-flake doesn't set the default package, so we do it here.
           packages.default = self'.packages.excalibur;
         };
