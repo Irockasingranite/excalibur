@@ -32,6 +32,10 @@
             # packages = {
             # };
 
+            settings.excalibur = {
+              cabalFlags.no-integration-tests = true;
+            };
+
             devShell = {
               # Enabled by default
               enable = true;

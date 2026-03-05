@@ -15,6 +15,11 @@ build-type:          Simple
 extra-source-files:  README.md
                      CHANGELOG.md
 
+flag no-integration-tests
+  description:       Disable integration tests (useful for sandboxed builds)
+  default:           False
+  manual:            True
+
 library
   hs-source-dirs:      src
   exposed-modules:     Checks,
@@ -115,7 +120,10 @@ test-suite excalibur-integration-tests
   other-modules:       GitFixture
   default-language:    Haskell2010
   ghc-options:         -Wall
-  build-depends:       base >= 4.7 && < 5,
+  if flag(no-integration-tests)
+    buildable:         False
+  else
+    build-depends:     base >= 4.7 && < 5,
                        bytestring,
                        directory,
                        excalibur,
