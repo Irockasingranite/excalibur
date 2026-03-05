@@ -107,3 +107,20 @@ test-suite excalibur-test
                        tasty-quickcheck,
                        text,
                        yaml
+
+test-suite excalibur-integration-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      integration-tests
+  main-is:             Main.hs
+  other-modules:       GitFixture
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  build-depends:       base >= 4.7 && < 5,
+                       bytestring,
+                       directory,
+                       excalibur,
+                       filepath,
+                       tasty,
+                       tasty-hunit,
+                       temporary,
+                       text
