@@ -1,6 +1,7 @@
 module GitFixture (
     withGitRepo,
     addCommit,
+    modifyFile,
     createBranch,
     checkoutBranch,
 ) where
@@ -33,6 +34,16 @@ addCommit repo filename content = do
     run $ "git add " ++ filename
     run $ "git commit -m 'add " ++ filename ++ "'"
     -- Read back the commit hash
+    (_, out) <- runCommandIn repo "git rev-parse HEAD"
+    return (T.pack . TL.unpack . TL.strip . TE.decodeUtf8 $ out)
+
+-- | Modifies an existing file and commits the change, returning the commit hash.
+modifyFile :: FilePath -> String -> String -> IO Commit
+modifyFile repo filename content = do
+    let run = runCommandIn_ repo
+    writeFile (repo </> filename) content
+    run $ "git add " ++ filename
+    run $ "git commit -m 'modify " ++ filename ++ "'"
     (_, out) <- runCommandIn repo "git rev-parse HEAD"
     return (T.pack . TL.unpack . TL.strip . TE.decodeUtf8 $ out)
 
