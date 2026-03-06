@@ -122,7 +122,8 @@ test-suite excalibur-integration-tests
   other-modules:       GitFixture,
                        CheckoutCommitTests,
                        GetChangedFilesTests,
-                       ResolveCommitRangeTests
+                       ResolveCommitRangeTests,
+                       ResolvePathsTests
   default-language:    Haskell2010
   ghc-options:         -Wall
   if flag(no-integration-tests)
