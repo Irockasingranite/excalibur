@@ -3,6 +3,7 @@
 
 module Util (
     forMDList,
+    checkoutCommit, -- from Util.CheckoutCommit
     inTempCopy, -- from Util.TempCopy
     resolveCommitRange, -- from Util.ResolveCommitRange
     getFinal, -- from Util.ResolveCommitRange
@@ -17,6 +18,7 @@ import Optics
 import Types
 
 -- re-exported
+import Util.CheckoutCommit (checkoutCommit)
 import Util.ResolveCommitRange (getFinal, resolveCommitRange)
 import Util.TempCopy (inTempCopy)
 
