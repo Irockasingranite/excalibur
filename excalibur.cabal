@@ -120,6 +120,7 @@ test-suite excalibur-integration-tests
   hs-source-dirs:      integration-tests
   main-is:             Main.hs
   other-modules:       GitFixture,
+                       CheckoutCommitTests,
                        GetChangedFilesTests,
                        ResolveCommitRangeTests
   default-language:    Haskell2010
