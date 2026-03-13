@@ -1,0 +1,14 @@
+name: 'Setup Nix'
+
+description: 'Set up nix with cache'
+
+runs:
+  
+  using: "composite"
+  steps:
+
+    - name: Install Nix
+      uses: nixbuild/nix-quick-install-action@v30
+
+    - name: Setup Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
