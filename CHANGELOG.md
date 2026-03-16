@@ -16,6 +16,7 @@ and this project adheres to the
 - Fixed invalid configuration file not causing a non-zero exit code.
 - Added unit tests for many non-IO functions.
 - Added integration tests for many IO functions.
+- Added `--version` option.
 
 ## 0.1.1 - 2025-10-08
 

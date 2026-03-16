@@ -11,12 +11,15 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Version (showVersion)
 import qualified Data.Yaml as Yaml
 import Optics
 import Options.Applicative as O
 import System.Exit
 import System.FilePath
 import System.IO
+
+import Paths_excalibur (version)
 
 import Checks
 import Types
@@ -76,7 +79,7 @@ parseOptions =
 opts :: ParserInfo CmdLineOptions
 opts =
     info
-        (parseOptions <**> helper)
+        (parseOptions <**> simpleVersioner ("excalibur " ++ showVersion version) <**> helper)
         ( fullDesc
             <> progDesc "Run checks on a range of commits"
             <> header "excalibur"
