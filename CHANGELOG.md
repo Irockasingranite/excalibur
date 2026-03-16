@@ -8,6 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.1.2 - 2026-03-16
+
 - Fixed various issues in the requirements document and added missing specifications for check execution behaviour.
 - Fixed on-repository checks being checked out in the original repository instead of the temporary copy.
 - Fixed check failure report entries having the wrong keys for exit codes and missing the expected exit code.
