@@ -27,14 +27,15 @@ getChangedFilesTests =
                 _ <- addCommit repo "c.txt" "v3"
                 result <- getChangedFiles repo [h2]
                 result @?= Just [repo </> "b.txt"]
-        , testCase "multiple commits returns changes across the range" $
+        , testCase "multiple commits returns changes across the range, including the first commit" $
             withGitRepo $ \repo -> do
+                _ <- addCommit repo "base.txt" "v0"
                 h1 <- addCommit repo "a.txt" "v1"
-                _ <- addCommit repo "b.txt" "v2"
+                h2 <- addCommit repo "b.txt" "v2"
                 h3 <- addCommit repo "c.txt" "v3"
-                result <- getChangedFiles repo [h1, h3]
-                -- Diff from h1 to h3: b.txt and c.txt were added
-                fmap sort result @?= Just (sort [repo </> "b.txt", repo </> "c.txt"])
+                result <- getChangedFiles repo [h1, h2, h3]
+                fmap sort result
+                    @?= Just (sort [repo </> "a.txt", repo </> "b.txt", repo </> "c.txt"])
         , testCase "detects modified files" $
             withGitRepo $ \repo -> do
                 _ <- addCommit repo "a.txt" "v1"
@@ -54,9 +55,11 @@ getChangedFilesTests =
                 _ <- addCommit repo "a.txt" "v1"
                 result <- getChangedFiles repo ["deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"]
                 result @?= Nothing
-        , testCase "no changes between identical commits returns empty list" $
+        , testCase "changes reverted within the range return empty list" $
             withGitRepo $ \repo -> do
-                h1 <- addCommit repo "a.txt" "v1"
-                result <- getChangedFiles repo [h1, h1]
+                _ <- addCommit repo "a.txt" "v1"
+                h2 <- modifyFile repo "a.txt" "v2"
+                h3 <- modifyFile repo "a.txt" "v1"
+                result <- getChangedFiles repo [h2, h3]
                 result @?= Just []
         ]

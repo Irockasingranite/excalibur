@@ -85,6 +85,6 @@ strictdoc export .               # render requirements (shell.nix provides stric
 - VCS here is Jujutsu (`.jj/`, no colocated `.git`); use `jj --no-pager` non-interactively. The tool itself only understands git repos.
 - Nix builds set flag `no-integration-tests` (sandbox has no git repo); integration tests only run via `cabal test` in the dev shell.
 - `inTempCopy` creates the temp dir in the CWD (not `/tmp`) and copies `.git` too; it skips its own dir when CWD == repo.
-- `getChangedFiles` for a multi-commit range diffs first..last commit, so the first commit's own changes are excluded - check before relying on `changed-only` semantics.
+- `getChangedFiles` diffs `<first>~1..<final>`, so a range starting at the root commit yields `Nothing` (no parent) and `changed-only` checks then see no files.
 - Config path is resolved relative to the REPOSITORY argument, not the CWD; report output path is relative to CWD.
 - `stack.yaml` (lts-23.27) exists but CI/Nix use cabal.

@@ -8,6 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
+- Fixed `changed-only` file checks on multi-commit ranges ignoring files changed only in the first commit of the range.
+
 ## 0.1.2 - 2026-03-16
 
 - Fixed various issues in the requirements document and added missing specifications for check execution behaviour.

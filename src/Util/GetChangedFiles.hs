@@ -13,10 +13,11 @@ import Util.RunCommand
 
 getChangedFiles :: FilePath -> [Commit] -> IO (Maybe [FilePath])
 getChangedFiles repo commits = do
+    -- `commits` holds only the new commits (rev-list excludes the range base), so the first one's
+    -- changes count too: diff from its parent.
     let (commitFrom, commitTo) = case commits of
             [] -> ("HEAD", "HEAD~1")
-            [c] -> (T.unpack c ++ "~1", T.unpack c)
-            (c : cs) -> (T.unpack c, (T.unpack . getFinal) cs)
+            (c : cs) -> (T.unpack c ++ "~1", (T.unpack . getFinal) (c : cs))
 
     -- Ask git for list of changed filenames
     let cmd = "git diff --name-only " ++ commitFrom ++ " " ++ commitTo
