@@ -8,6 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.1.3 - 2026-11-19
+
 - Fixed `changed-only` file checks on multi-commit ranges ignoring files changed only in the first commit of the range.
 - Changed the minimum supported GHC version to 9.10 (`base >= 4.20`) and updated the Stack snapshot to `lts-24.67`.
 
