@@ -9,7 +9,6 @@ module Checks.FileCheck (
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
-import Data.List (foldl')
 import qualified Data.Text as T
 import Optics
 
